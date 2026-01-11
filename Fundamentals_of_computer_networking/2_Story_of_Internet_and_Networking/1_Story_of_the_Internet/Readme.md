@@ -1,4 +1,4 @@
-# 🌐 History of the Internet – ARPANET
+# 🌐 Story of the Internet – ARPANET
 
 This README explains how the Internet was developed, starting from the Cold War era and the creation of ARPANET.
 
