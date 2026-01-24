@@ -1,39 +1,154 @@
-Understanding OSI Model
+# Understanding the OSI Model
 
-To run networking efficiently and to divide work in different tasks, OSI model is made. OSI Model stands for Open Systems Interconnected Model. 
-There are many works in Networking. IN OSI Model, these works are divided in 7 layers - 
+The **OSI Model (Open Systems Interconnection Model)** is a conceptual framework used to understand how data is transmitted over a network.  
+It divides networking tasks into **7 layers**, making communication easier to design, understand, and troubleshoot.
 
-7. Application Layer
-6. Presentation Layer
-5. Session Layer
-4. Transport Layer
-3. Network Layer
-2. Data Link Layer
-1. Physical Layer
+> ⚠️ The OSI model is not mandatory to follow strictly. It is a **general guideline**, not an implementation rule.
 
-It is not strictly neccessary that every device should follow these rules. It is just a general guideline.
+---
 
+## Why OSI Model?
 
-7. Application Layer - Application layer acts as an interface between user and network. It presents data to the user in human readable form. It provides network services to applications.
+- To divide complex networking tasks into smaller responsibilities
+- To standardize communication between different systems
+- To help in debugging and troubleshooting network issues
 
-6. Presentation Layer - In this layer many operations get performed on data like serialization, compression, encryption, translation etc. so that two systems can correctly understand eachother.
+---
 
-5. Session Layer - Session Layer helps to create a connection between two devices. There are no operations performed on data in this layer.
+## OSI Model Layers (Top → Bottom)
 
-4. Transport Layer - In this layer data get divided into different segments. A number get added to each segment called port. Port identifies which request coming from which application. Port also tells the type of a request. There are two types of requests in transport layer - TCP & UDP.
+7. Application Layer  
+6. Presentation Layer  
+5. Session Layer  
+4. Transport Layer  
+3. Network Layer  
+2. Data Link Layer  
+1. Physical Layer  
 
-3. Network Layer - In network layer a new address added on data segments called IP address(e.g. 142.3.2.1). Basically two IP addresses get assigned - destination & source IP address. Now this whole combination of port, request type and IP addresses will be called Packet. 
+---
 
-2. Data Link Layer - In data Link Layer MAC address(e.g. 1A-42-F9-6B) get assigned to Packet. There are also two MAC addresses - destination & source MAC address. Now combination of Packet and MAC addresses will be called Frame.
+## Layer-wise Explanation
 
-1. Physical Layer - In Physical layer this frame is converted into any physical/wifi signal like electrical, optic cabel or light.
+### 7️⃣ Application Layer
+- Acts as an interface between the **user and the network**
+- Provides network services to applications
+- Displays data in **human-readable form**
+- Examples: HTTP, FTP, SMTP, DNS
 
-After passing through all these layer each frame will reach to our router. Through all these layers request will get packed. Router will check the MAC address in packet is his MAC address, if it is then packet reached to correct destination. But router will find out that IP address is someone else. Router will then change the packet. It will change Source IP address to destination IP address means its own MAC address and Destination IP address to next machine/server MAC address
+---
 
-All the layers mentioned above are layer 1 and this router layer is layer 2. Every information added in each layer of layer 1 called headers. Layer 2 header get changed by router. layer 2's job is deliver data from one device to next. Frame will get changed in every device but packet will remain as it is. This delivery called Hop to Hop delivery. This process continues until our request reaches its final destination.  
+### 6️⃣ Presentation Layer
+- Ensures data is understandable between systems
+- Performs:
+  - Encryption / Decryption
+  - Compression / Decompression
+  - Serialization
+  - Data translation
 
-Now unpacking will start. When Request reaches to destination it will get converted into a Frame. Request is a electric signal. The cable through this signal is travelling is a kind of physical layer itself. convertion is done by physical layer.
+---
 
-Now Data Link Layer will check is this frame is for this device by checking its MAC address. If it matches then frame reaches to Network Layer. Now Frame will become Packet. Network layer will check that if packet has same IP address as device, if matches packet will move to Transport Layer.
+### 5️⃣ Session Layer
+- Establishes, manages, and terminates sessions
+- Maintains synchronization between devices
+- ❌ No operations are performed on data itself
 
-In Transport Layer packet becomes Segment.
+---
+
+### 4️⃣ Transport Layer
+- Breaks data into **segments**
+- Adds **port numbers** to identify applications
+- Supports:
+  - **TCP** (reliable, connection-oriented)
+  - **UDP** (fast, connectionless)
+- Uses:
+  - Source Port
+  - Destination Port
+
+---
+
+### 3️⃣ Network Layer
+- Adds **IP addresses** to segments
+- Includes:
+  - Source IP Address
+  - Destination IP Address
+- Responsible for **routing**
+- Data unit is called a **Packet**
+
+---
+
+### 2️⃣ Data Link Layer
+- Adds **MAC addresses** to packets
+- Includes:
+  - Source MAC Address
+  - Destination MAC Address
+- Data unit becomes a **Frame**
+- Responsible for **hop-to-hop delivery**
+
+---
+
+### 1️⃣ Physical Layer
+- Converts frames into **physical signals**
+- Signals can be:
+  - Electrical
+  - Optical
+  - Wireless (Wi-Fi)
+- Handles cables, voltages, and raw bits
+
+---
+
+## Encapsulation (Sender Side)
+
+- Data moves from **Layer 7 → Layer 1**
+- Each layer adds its own header
+- Final output becomes a physical signal
+- This process is called **Encapsulation**
+
+---
+
+## Router Role (Important)
+
+- Router mainly works at:
+  - **Layer 3 (Network Layer)**
+- Uses **IP addresses** to route data
+
+### What changes at each hop?
+- **Frame (Layer 2)** → Changes at every hop
+- **Packet (Layer 3)** → Remains the same (except TTL)
+
+This is called **Hop-to-Hop Delivery**.
+
+---
+
+## Decapsulation (Receiver Side)
+
+- Data moves from **Layer 1 → Layer 7**
+- Steps:
+  1. Physical Layer receives signal
+  2. Data Link Layer checks MAC address
+  3. Network Layer checks IP address
+  4. Transport Layer checks port number
+  5. Presentation Layer decrypts & decompresses
+  6. Application Layer displays data
+
+This process is called **Decapsulation**.
+
+---
+
+## Key Terminologies
+
+| Term | Description |
+|----|----|
+| Segment | Transport Layer data |
+| Packet | Network Layer data |
+| Frame | Data Link Layer data |
+| Encapsulation | Layer 7 → Layer 1 |
+| Decapsulation | Layer 1 → Layer 7 |
+| Hop-to-Hop | Frame delivery between devices |
+
+---
+
+## Conclusion
+
+The OSI model helps us understand **how data travels**, **how routing works**, and **how different layers collaborate** to deliver information from one device to another.
+
+---
