@@ -7,3 +7,9 @@ $PS1="Hello"
 $PS2="World"
 
 # To change permanatly you can create .bashrc file and set there with same commands.
+
+# source bashrc file to refresh terminal on change
+source ~/.bashrc
+
+# make alias
+alias source="source ~/.bashrc" # To make alias available you need to run "source ~/.bashrc" in terminal once. Once you done that you can directly run source to execute "source ~/.bashrc"
