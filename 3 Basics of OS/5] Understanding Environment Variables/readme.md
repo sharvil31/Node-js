@@ -86,6 +86,31 @@ source ~/.bashrc
 
 ---
 
+## Creating, Updating and deleting Environment Variables for whole system
+
+### Create
+
+```bash
+setx VARIABLE_NAME "value"
+```
+
+- Accessible throughout the system.
+
+- With same command you can update the variable value also by changing "value"
+
+### delete (Powershell)
+
+```powershell
+REG delete HKCU\Environment /F /V VARIABLE_NAME
+```
+---
+
+## using Node.js
+
+### You can also create, update, and delete environment variables using Node.js with the exec function.
+
+---
+
 ## Priority Order of Environment Variables
 
 If the same environment variable exists at multiple levels, the priority order is:
