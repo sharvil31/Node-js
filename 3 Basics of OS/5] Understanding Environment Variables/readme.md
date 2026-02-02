@@ -140,5 +140,4 @@ If the same environment variable exists at multiple levels, the priority order i
 - Process-level variables override user and system variables.
 
 - Understanding environment variables is essential for backend development, DevOps, and system programming.
-
 ---
