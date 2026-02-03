@@ -78,5 +78,4 @@ While not strictly "navigation," these commands are used constantly in the same 
 - mv : Moves files or directories (can also be used to rename them).
 - rm : Removes (deletes) files (rm -r is needed for directories; use with caution as there is no trash bin in the shell).
 - cat : Displays the contents of a text file in the terminal. 
-
 ---
