@@ -45,3 +45,29 @@ x : permission name
 src/ : file/folder name
 
 this command by default will give read(r) and execute(x) permission to all three users and write(w) permission to owner only.
+
+This permissions also represented by -
+
+- Read => r => 4
+- Write => w => 2
+- Execute => x => 1
+
+To see these number representation the command is -
+
+```bash 
+stat -c "%A %a %n" app.js
+```
+output example:
+
+-rwxr--r-- 744 app.js
+
+every number represents a three permission group. In first group "rwx", read is 4. write is 2 and execute is 1, 4 + 2 + 1 = 7 means this user has three permissions read. write and execute.
+similarly, next group "r--" has only read permission means 4. Means this user can only read file.
+And last group "r--" also has only read permission means 4. Means this user can also only read file.
+
+You can give permissions using these numbers also -
+
+```bash
+chmod 666 text.txt
+```
+All users will have read and write permissions.
