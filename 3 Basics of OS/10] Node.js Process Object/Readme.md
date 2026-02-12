@@ -1,74 +1,134 @@
-Node.js Process Object
+# Node.js Process Object
 
-### Accessing Process Properties
+Quick reference guide for the Node.js `process` global object.
 
-## Command-line arguments
-- process.argv; - gives array of paths one is node.js path and second one is file path, if you are running a file.
+## Properties
 
-## Environment variables
-process.env; - prints all environment variables in key value pair available in system.
+### Command-Line Arguments
+```javascript
+process.argv  // [node_path, file_path, ...args]
+```
 
-// Current process ID
-process.pid; - prints currently running process/app's process id.
+### Environment Variables
+```javascript
+process.env  // Object with all environment variables
+```
 
-// Parent process ID
-process.ppid; - prints currently running process/app's parent process id.
+### Process Information
+```javascript
+process.pid        // Current process ID
+process.ppid       // Parent process ID
+process.platform   // 'win32', 'darwin', 'linux', etc.
+process.arch       // 'x64', 'arm', 'arm64', etc.
+process.version    // Node.js version
+process.versions   // All dependency versions
+process.execPath   // Path to Node.js executable
+```
 
-// Operating system platform
-process.platform; - Tells on which platform current process is running ex. win32, win64 etc.
+## Methods
 
-// Node.js version
-process.version; - Tells installed Node.js version.
+### Directory
+```javascript
+process.cwd()           // Get current working directory
+process.chdir(path)     // Change working directory
+```
 
-// Node.js and dependencies versions
-process.versions;
+### Memory & Performance
+```javascript
+process.memoryUsage()   // { rss, heapTotal, heapUsed, external }
+process.uptime()        // Process uptime in seconds
+process.hrtime.bigint() // High-resolution time
+```
 
-// Processor architecture
-process.arch;
+### Process Control
+```javascript
+process.exit([code])           // Exit (0 = success, 1 = error)
+process.kill(pid, [signal])    // Send signal to process
+process.emitWarning(msg, opts) // Emit custom warning
+```
 
-// Using Process Methods
-// Current working directory
-process.cwd();
+### Event Loop
+```javascript
+process.nextTick(callback)  // Run before next event loop iteration
+```
 
-// Change working directory
-process.chdir("/tmp");
+## Events
 
-// Memory usage
-process.memoryUsage();
+```javascript
+process.on('exit', (code) => {})
+process.on('uncaughtException', (error) => {})
+process.on('unhandledRejection', (reason, promise) => {})
+process.on('warning', (warning) => {})
+process.on('SIGINT', () => {})   // Ctrl+C
+process.on('SIGTERM', () => {})  // Termination signal
+```
 
-// Process uptime
-process.uptime();
+## Standard Streams
 
-// Exiting the process
-// process.exit(0);
+```javascript
+process.stdout.write('text')  // Write to stdout (no newline)
+process.stderr.write('error') // Write to stderr
 
-// Kill the process
-process.kill(process.pid);
+process.stdin.on('data', (data) => {})  // Read from stdin
+```
 
-// Emit warning
-process.emitWarning("This is a custom warning message!", {
-  code: "MY_WARNING_CODE",
-  detail: "This is some additional warning detail.",
+## Best Practices
+
+**Graceful Shutdown:**
+```javascript
+process.on('SIGTERM', async () => {
+  await server.close();
+  await db.close();
+  process.exit(0);
 });
+```
 
-// Interacting with stdin, stdout, and stderr streams
-process.stdout.write("Hello, stdout!\n");
-process.stderr.write("Hello, stderr!\n");
-
-// Next Tick demonstration
-process.nextTick(() => {
-  // This will run on the next tick of the event loop.
+**Error Handling:**
+```javascript
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error);
+  process.exit(1);
 });
+```
 
-// Registering event listeners
-process.on("exit", (code) => {
-  // Process is about to exit with code
-});
+**Environment Validation:**
+```javascript
+if (!process.env.DATABASE_URL) {
+  console.error('Missing DATABASE_URL');
+  process.exit(1);
+}
+```
 
-process.on("warning", (warning) => {
-  // Handle warning
-});
+## Common Patterns
 
-process.stdin.on("data", (data) => {
-  // Process input data
-});
+**CLI Arguments:**
+```javascript
+const args = process.argv.slice(2);
+console.log(`Command: ${args[0]}`);
+```
+
+**Environment Config:**
+```javascript
+const config = {
+  env: process.env.NODE_ENV || 'development',
+  port: process.env.PORT || 3000
+};
+```
+
+**Process Info:**
+```javascript
+console.log(`PID: ${process.pid}`);
+console.log(`Platform: ${process.platform}`);
+console.log(`Node: ${process.version}`);
+```
+
+## Important Notes
+
+- ⚠️ Avoid `process.exit()` - use graceful shutdown
+- `process.kill()` sends signals, doesn't always kill
+- `process.nextTick()` has priority over `setTimeout()`
+- Always handle `uncaughtException` and `unhandledRejection`
+
+## Resources
+
+- [Node.js Process Docs](https://nodejs.org/api/process.html)
