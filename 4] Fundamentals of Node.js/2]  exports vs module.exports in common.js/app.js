@@ -1,19 +1,4 @@
-const user = {
-    name: "Sharvil Amburle",
-    age: 22,
-    address: {
-        city: "Badlapur",
-        state: "Maharashtra",
-    },
-    hobbies: ["Reading", "Coding", "Cricket"],
-};
+// const { sum, product } = require("./math");
+const math = require("./math");
 
-let address = user.address
-
-console.log(user.address === address);
-
-address.pinCode = 415713;
-address.country = "India";
-
-console.log(address);
-console.log(user.address);
+console.log(math);
