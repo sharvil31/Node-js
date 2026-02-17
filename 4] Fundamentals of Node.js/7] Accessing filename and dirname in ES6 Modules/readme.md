@@ -1,47 +1,87 @@
-Accessing filename and dirname in ES6 Modules
+# Accessing `filename` and `dirname` in ES6 Modules
 
-import.meta
+## `import.meta`
 
-It looks like import is an object and we are accessing its meta property but import.meta is a single syntax, It is not a property on a object. import.meta is itself a whole object.
+`import.meta` might *look* like accessing a property on an object, but it's actually its own special syntax — a single meta-object provided by the JavaScript runtime. It is **not** a regular property access on `import`.
 
-There is a meta object in import.meta. Inside meta object there are filename and dirname properties. We can destructre them from import.meta
+### Getting `filename` and `dirname`
+
+Inside `import.meta`, there are `filename` and `dirname` properties. You can destructure them directly:
 
 ```javascript
 const { filename, dirname } = import.meta;
 ```
-You can add any property in import.meta object and can access it.
+
+You can also add custom properties to `import.meta`:
 
 ```javascript
 import.meta.a = "Sharvil";
 const { filename, dirname, a } = import.meta;
-console.log(dirname); // Sharvil
-```
-Some people do "console.log(process.cwd())" to get current directory path. But it does'nt work for all cases. Beacuse process.cwd only gives path to from which directory Node.js process has executed. Means if you are in another folder and execute a file by giving a path without going inside that folder then process.cwd() will only give path to the directory you are executing a file from. It will remove path of the file which you executes
-
-example:
-
-suppose you are in "4] Fundamentals of Node.js" directory and you give a path "cd 7] Accessing filename and dirname in ES6 Modules\app.js" then both will give different outputs -
-
-import.meta.dirname gives always whole path
-
-```bash
-C:\Users\SHARVIL AMBURLE\Documents\node-js\4] Fundamentals of Node.js\7] Accessing filename and dirname in ES6 Modules
+console.log(a); // "Sharvil"
 ```
 
-process.cwd() removes current directory of your code beacuse you executed command from "4] Fundamentals of Node.js" directory
+---
+
+## `import.meta.dirname` vs `process.cwd()`
+
+These two are **not** the same, and the difference matters.
+
+### `process.cwd()`
+
+Returns the directory from which the **Node.js process was started** — not the directory of the currently executing file.
+
+**Example:**
+
+Suppose you're in `4] Fundamentals of Node.js` and you run:
 
 ```bash
+node "7] Accessing filename and dirname in ES6 Modules/app.js"
+```
+
+`process.cwd()` returns the directory you executed the command **from**:
+
+```
 C:\Users\SHARVIL AMBURLE\Documents\node-js\4] Fundamentals of Node.js\
 ```
 
-If we change directory with
+It does **not** include the subdirectory where `app.js` actually lives.
 
-```bash
-process.chdir("./src")
-```
-then in this case also process.cwd() will give path to ".src" folder like this -
+---
 
-```bash
-C:\Users\SHARVIL AMBURLE
-\Documents\node-js\4] Fundamentals of Node.js\7] Accessing filename and dirname in ES6 Modules\src 
+### `import.meta.dirname`
+
+Always returns the **absolute path of the directory containing the current module file**, regardless of where Node.js was started from.
+
 ```
+C:\Users\SHARVIL AMBURLE\Documents\node-js\4] Fundamentals of Node.js\7] Accessing filename and dirname in ES6 Modules
+```
+
+---
+
+### What about `process.chdir()`?
+
+If you change the working directory at runtime with:
+
+```javascript
+process.chdir("./src");
+```
+
+`process.cwd()` will now return the new working directory:
+
+```
+C:\Users\SHARVIL AMBURLE\Documents\node-js\4] Fundamentals of Node.js\7] Accessing filename and dirname in ES6 Modules\src
+```
+
+`import.meta.dirname` stays unchanged — it always points to the module's own directory.
+
+---
+
+## Summary
+
+| | `import.meta.dirname` | `process.cwd()` |
+|---|---|---|
+| **Returns** | Directory of the current module file | Directory Node.js process was started from |
+| **Affected by `process.chdir()`?** | ❌ No | ✅ Yes |
+| **Reliable for file paths?** | ✅ Always | ⚠️ Not always |
+
+> **Recommendation:** Use `import.meta.dirname` when you need the path of the current file. Use `process.cwd()` only when you specifically need the process's working directory.
