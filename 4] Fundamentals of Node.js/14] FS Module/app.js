@@ -11,9 +11,14 @@ import fs from "node:fs/promises";
 
 let i = 0;
 
-setInterval(() => {
-    console.log(i++);
-}, 5)
+console.time();
+const timerId = setInterval(() => {
+  console.log(i++);
+  if (i === 50) {
+    clearInterval(timerId);
+    console.timeEnd()
+  }
+}, 5);
 
 const a = await fs.readFile("./NPX-searching-steps.txt", "utf-8");
 console.log("Reading Done");
