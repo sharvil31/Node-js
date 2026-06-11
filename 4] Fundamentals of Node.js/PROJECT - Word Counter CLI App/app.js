@@ -1,11 +1,7 @@
+#!/usr/bin/env node
 import { readFile } from "node:fs/promises";
 
-console.log(process.argv);
-
 const [filePath, fileWord] = process.argv.slice(2);
-// const fileWord = process.argv[3];
-
-console.log(fileWord);
 
 const fileContent = await readFile(filePath, "utf-8");
 
