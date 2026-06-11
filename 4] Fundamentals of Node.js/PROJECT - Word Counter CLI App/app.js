@@ -1,16 +1,22 @@
-import {readFile} from "node:fs/promises";
+import { readFile } from "node:fs/promises";
 
-const fileContent = await readFile("./file-1.txt", "utf-8");
+console.log(process.argv);
+
+const [filePath, fileWord] = process.argv.slice(2);
+// const fileWord = process.argv[3];
+
+console.log(fileWord);
+
+const fileContent = await readFile(filePath, "utf-8");
 
 const wordsArray = fileContent.trim().split(/[\W]/).filter(Boolean);
 
-console.log(wordsArray);
-
 const wordsCount = {};
 
-wordsArray.forEach((word) => {
-  if (word in wordsCount) wordsCount[word] += 1;
-  else wordsCount[word] = 1;
-});
+for (const word of wordsArray) {
+  if (fileWord && word !== fileWord) continue;
 
-console.log(counter);
+  wordsCount[word] = (wordsCount[word] || 0) + 1;
+}
+
+console.log(wordsCount);
