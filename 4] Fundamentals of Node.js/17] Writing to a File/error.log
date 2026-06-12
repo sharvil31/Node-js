@@ -1,0 +1,29 @@
+10:16:27 pm
+ENOENT: no such file or directory, open 'C:\Users\SHARVIL AMBURLE\Documents\node-js\4] Fundamentals of Node.js\17] Writing to a File\apps.js'
+Error: ENOENT: no such file or directory, open 'C:\Users\SHARVIL AMBURLE\Documents\node-js\4] Fundamentals of Node.js\17] Writing to a File\apps.js'
+    at async open (node:internal/fs/promises:640:25)
+    at async readFile (node:internal/fs/promises:1244:14)
+    at async file:///C:/Users/SHARVIL%20AMBURLE/Documents/node-js/4%5D%20Fundamentals%20of%20Node.js/17%5D%20Writing%20to%20a%20File/app.js:8:27
+
+10:18:11 pm
+ENOENT: no such file or directory, open 'C:\Users\SHARVIL AMBURLE\Documents\node-js\4] Fundamentals of Node.js\17] Writing to a File\apps.js'
+Error: ENOENT: no such file or directory, open 'C:\Users\SHARVIL AMBURLE\Documents\node-js\4] Fundamentals of Node.js\17] Writing to a File\apps.js'
+    at async open (node:internal/fs/promises:640:25)
+    at async readFile (node:internal/fs/promises:1244:14)
+    at async file:///C:/Users/SHARVIL%20AMBURLE/Documents/node-js/4%5D%20Fundamentals%20of%20Node.js/17%5D%20Writing%20to%20a%20File/app.js:8:27
+
+
+10:18:22 pm
+ENOENT: no such file or directory, open 'C:\Users\SHARVIL AMBURLE\Documents\node-js\4] Fundamentals of Node.js\17] Writing to a File\apps.js'
+Error: ENOENT: no such file or directory, open 'C:\Users\SHARVIL AMBURLE\Documents\node-js\4] Fundamentals of Node.js\17] Writing to a File\apps.js'
+    at async open (node:internal/fs/promises:640:25)
+    at async readFile (node:internal/fs/promises:1244:14)
+    at async file:///C:/Users/SHARVIL%20AMBURLE/Documents/node-js/4%5D%20Fundamentals%20of%20Node.js/17%5D%20Writing%20to%20a%20File/app.js:8:27
+
+
+10:19:04 pm
+ENOENT: no such file or directory, open 'C:\Users\SHARVIL AMBURLE\Documents\node-js\4] Fundamentals of Node.js\17] Writing to a File\apps.js'
+Error: ENOENT: no such file or directory, open 'C:\Users\SHARVIL AMBURLE\Documents\node-js\4] Fundamentals of Node.js\17] Writing to a File\apps.js'
+    at async open (node:internal/fs/promises:640:25)
+    at async readFile (node:internal/fs/promises:1244:14)
+    at async file:///C:/Users/SHARVIL%20AMBURLE/Documents/node-js/4%5D%20Fundamentals%20of%20Node.js/17%5D%20Writing%20to%20a%20File/app.js:8:27
