@@ -1,0 +1,8 @@
+{
+  "name": "sharvil-words-counter",
+  "version": "1.0.3",
+  "type": "module",
+  "bin": {
+    "sharvil-words-counter": "./app.js"
+  }
+}
