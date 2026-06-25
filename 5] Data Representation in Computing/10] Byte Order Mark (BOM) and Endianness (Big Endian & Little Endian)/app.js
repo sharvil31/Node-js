@@ -2,4 +2,4 @@ import fs from "fs/promises";
 
 const contentBuffer = await fs.readFile("text.txt");
 
-console.log(contentBuffer.toString());
+console.log(contentBuffer.toString("utf-16le"));
