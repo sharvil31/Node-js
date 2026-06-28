@@ -1,59 +1,467 @@
-## Signed & Unsigned Values
+# Signed vs Unsigned Values (Two's Complement)
 
-00000010 -> 2 -> Unsiged binary digits
+A binary number is just a sequence of bits.
 
-We can only store positive numbers in unsigned value and negative in signed value. 
-Unsigned numbers have 0 at start of their binary digits and Unsigned numbers have 1.
+The **same bits can represent different values** depending on whether they are interpreted as:
 
-exanmple:
+- **Unsigned integer**
+- **Signed integer (Two's Complement)**
 
-10000000 -> 8 bit binary
+---
 
-If this binary is read as unsigned it will be 128 in decimal.
-If same binary is read as signed then it's value will be in negative.
+## Unsigned Values
 
-### How to convert signed values in negative numbers?
+Unsigned integers can store **only positive numbers and zero**.
 
-To convert signed values in -ve numbers, we need to take it's 2's complement.
-To get 2's complement just flip the binary digits -> **10000000** will become **01111111** -> **127** in decimal.
-Add an additional 1 to it -> **10000000** -> **128**.
-Here, **10000000** will be read **-128** (-ve) as signed value because it has 1 at start.
-If the same **10000000** is read as unsigned value it will be **128** (+ve)
+For an 8-bit unsigned integer:
 
-*Tip - You can use Programmers Calculator for calculations.
+```
+00000000 -> 0
+00000001 -> 1
+00000010 -> 2
+...
+11111111 -> 255
+```
 
-**01111111** is the highest positive number we can store in 1 byte(8 bits) which is **127**. So from **00000000** to **01111111** will be same as both signed and unsigned. because they dont have 1 at start.
+Range:
 
-example -
+```
+0 to 255
+```
 
-signed - 127
-unsigned - 127
+Formula:
 
-signed - 10
-unsigned - 10
+```
+0 → (2^8 - 1)
 
-If we want to convert it into negative values we need to flip binary digits and add 1 to it like we done before.
+0 → 255
+```
 
-The signed and unsigned values will be same from 0 to 128. They will differ after 128.
+---
 
-Now lets take a 2's complement of **129**
+## Signed Values (Two's Complement)
 
-Its binary value is **10000001** 
+Signed integers can store **both positive and negative numbers**.
 
-**10000001** -> Unsigned -> 129.
+For an 8-bit signed integer:
 
-Now for negative signed value of **10000001**,
-first flip the digits to get 2's complement -> **01111110** -> **126** in decimal.
-Add 1 to it -> **01111111** -> **127** 
-**10000001** as signed will be read aa **-127** in decimal. 
+```
+00000000 -> 0
+00000001 -> 1
+...
+01111111 -> 127
 
-some more examples
+10000000 -> -128
+10000001 -> -127
+...
+11111111 -> -1
+```
 
-signed   unsigned
-241      -15
-150      -106
-128      -128
+Range:
 
-In negative, -5 greater than -10.
-in that sense **-128** (01111111 -> 10000000) is the maximum we can store in 1 byte signed value. (smallest in +ve).
-and **-1** (11111111 -> 00000000 -> 00000001 (add 1)) is the minimum we can store in 1 byte signed value. (biggest in +ve).
+```
+-128 to 127
+```
+
+Formula:
+
+```
+-(2^(n-1)) → (2^(n-1) - 1)
+
+For 8 bits:
+
+-128 → 127
+```
+
+---
+
+# Important Rule
+
+The bits themselves do **not** tell you whether they are signed or unsigned.
+
+It depends entirely on **how the program interprets them.**
+
+Example:
+
+```
+10000000
+```
+
+If interpreted as:
+
+Unsigned:
+
+```
+128
+```
+
+Signed:
+
+```
+-128
+```
+
+Same bits.
+
+Different interpretation.
+
+---
+
+# Does a signed number always start with 1?
+
+No.
+
+A common misunderstanding is:
+
+> "Signed numbers start with 1."
+
+This is **not true**.
+
+Instead:
+
+- In **signed representation**
+    - MSB = 0 → Positive number
+    - MSB = 1 → Negative number
+
+Examples:
+
+```
+00001010 -> +10
+
+10000001 -> -127
+
+11111111 -> -1
+```
+
+So **positive signed numbers also begin with 0.**
+
+---
+
+# Why is the MSB special?
+
+In Two's Complement, the **Most Significant Bit (MSB)** acts as the sign bit.
+
+```
+0xxxxxxx → Positive
+
+1xxxxxxx → Negative
+```
+
+---
+
+# Finding the Decimal Value of a Negative Number
+
+Suppose we have:
+
+```
+10000000
+```
+
+Since MSB is 1, it represents a negative number.
+
+To find its magnitude:
+
+Step 1: Flip every bit
+
+```
+10000000
+
+↓
+
+01111111
+```
+
+Step 2: Add 1
+
+```
+01111111
+
++
+
+00000001
+
+=
+
+10000000
+```
+
+Binary:
+
+```
+10000000
+```
+
+Decimal:
+
+```
+128
+```
+
+Therefore:
+
+```
+10000000 = -128
+```
+
+---
+
+Another example:
+
+```
+10000001
+```
+
+Flip bits:
+
+```
+01111110
+```
+
+Add 1:
+
+```
+01111111
+```
+
+Decimal:
+
+```
+127
+```
+
+Therefore:
+
+```
+10000001 = -127
+```
+
+---
+
+One more example:
+
+```
+11111111
+```
+
+Flip bits:
+
+```
+00000000
+```
+
+Add 1:
+
+```
+00000001
+```
+
+Decimal:
+
+```
+1
+```
+
+Therefore:
+
+```
+11111111 = -1
+```
+
+---
+
+# Positive Numbers
+
+For positive values, signed and unsigned representations are identical.
+
+Examples:
+
+```
+Binary      Signed      Unsigned
+
+00000000       0             0
+
+00000101       5             5
+
+01111111     127           127
+```
+
+No difference exists because the MSB is 0.
+
+---
+
+# When do Signed and Unsigned Differ?
+
+They differ whenever the MSB becomes 1.
+
+Examples:
+
+| Binary | Unsigned | Signed |
+|---------|---------:|-------:|
+|10000000|128|-128|
+|10000001|129|-127|
+|10000010|130|-126|
+|11110001|241|-15|
+|10010110|150|-106|
+|11111111|255|-1|
+
+---
+
+# Why is the Signed Range Not Symmetric?
+
+Notice:
+
+```
+Positive:
+
+0 → 127
+```
+
+Negative:
+
+```
+-128 → -1
+```
+
+There is one extra negative number.
+
+Why?
+
+Because:
+
+```
+00000000
+
+already represents zero.
+```
+
+If +128 also existed, we would need another bit.
+
+Instead, Two's Complement uses that extra pattern to represent:
+
+```
+-128
+```
+
+---
+
+# Largest and Smallest Values
+
+### Unsigned (8-bit)
+
+Minimum:
+
+```
+0
+```
+
+Maximum:
+
+```
+255
+```
+
+---
+
+### Signed (8-bit)
+
+Largest positive:
+
+```
+01111111
+
+= 127
+```
+
+Smallest (most negative):
+
+```
+10000000
+
+= -128
+```
+
+Largest negative:
+
+```
+11111111
+
+= -1
+```
+
+---
+
+# Comparing Negative Numbers
+
+Remember:
+
+```
+-1  >  -5
+
+-5  >  -10
+
+-10 > -100
+```
+
+Therefore:
+
+```
+-128
+
+is the smallest signed value.
+
+NOT the largest.
+```
+
+Similarly:
+
+```
+-1
+
+is the largest negative number because it is closest to zero.
+```
+
+---
+
+# Summary
+
+### Unsigned (8 bits)
+
+```
+Range:
+
+0 → 255
+```
+
+### Signed (Two's Complement)
+
+```
+Range:
+
+-128 → 127
+```
+
+### MSB
+
+```
+0 → Positive
+
+1 → Negative
+```
+
+### Same Binary, Different Meaning
+
+```
+10000000
+
+Unsigned:
+
+128
+
+Signed:
+
+-128
+```
+
+The bits never change.
+
+Only their interpretation changes.
