@@ -28,11 +28,11 @@ const nodeBuffer = Buffer.from("Hello World");
 // console.log(nodeBuffer2.writeInt8(0x65, 2));
 // console.log(nodeBuffer2)
 // console.log(nodeBuffer.at(2))
-console.log(nodeBuffer.swap16())
+// console.log(nodeBuffer.swap16())
 
 // Properties
 
-console.log(nodeBuffer.buffer);
-console.log(nodeBuffer.byteLength);
-console.log(nodeBuffer.byteOffset);
-console.log(nodeBuffer.length);
+// console.log(nodeBuffer.buffer);
+// console.log(nodeBuffer.byteLength);
+// console.log(nodeBuffer.byteOffset);
+// console.log(nodeBuffer.length);
