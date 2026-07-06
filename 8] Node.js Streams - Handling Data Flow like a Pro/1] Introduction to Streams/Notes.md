@@ -1,0 +1,5 @@
+# Introduction to Streams
+
+In Node.js, buffer size depends on RAM size(2/4/6 gb). Buffer get space from our RAM. if our data size exceeds buffer/RAM size then our application will break. Also we cannot use full RAM size for one application or other applications will not have space to run. This is the limitation of buffer. To solve this problem Streams were introduced.
+
+If our c drive have 200 gb storage and Hard Disk have 300 gb storage. So transferring data from C Drive to Hard Disk should not have any problem right?. When we transfer data from one point to another between two points there is a RAM. Our RAM is 4gb. In 4gb, system is using some space(1/2gb) then our transferring file size should not exceed the available RAM size or our system will break. So how to transfer bigger files than RAM size? The solution is Streams.
