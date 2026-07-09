@@ -1,3 +1,5 @@
+// Internal Buffer of Readable Streams
+
 import fs from "fs";
 
 const readStream = fs.createReadStream("chars.txt", { highWaterMark: 4 });
