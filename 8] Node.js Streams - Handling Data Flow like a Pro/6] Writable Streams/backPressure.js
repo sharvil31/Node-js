@@ -24,4 +24,4 @@ writeStream.on("drain", () => {
 
 readStream.on("end", () => {
   console.timeEnd();
-});
+})
