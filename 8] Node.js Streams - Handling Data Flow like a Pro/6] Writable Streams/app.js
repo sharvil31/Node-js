@@ -50,21 +50,45 @@ const writeStream = fs.createWriteStream("file.txt", { highWaterMark: 4 });
 
 // Give WriteStream some time to empty stream
 
-let i = 1;
+// let i = 1;
 
-const write1000A = () => {
-  while (i <= 1000) {
-    console.log(writeStream.writableLength);
-    const isEmpty = writeStream.write("a");
-    i++;
-    if (!isEmpty) break;
-    console.log(isEmpty);
-  }
-};
+// const write1000A = () => {
+//   while (i <= 1000) {
+//     console.log(writeStream.writableLength);
+//     const isEmpty = writeStream.write("a");
+//     i++;
+//     if (!isEmpty) break;
+//     console.log(isEmpty);
+//   }
+// };
 
-write1000A();
+// write1000A();
 
-writeStream.on("drain", () => {
-  console.log("Drained", writeStream.writableLength);
-  write1000A();
-});
+// writeStream.on("drain", () => {
+//   console.log("Drained", writeStream.writableLength);
+//   write1000A();
+// });
+
+
+// Closing Writable Streams
+
+// Where readStream closes on his own after completed reading, writeStream doesn't close after done writing.
+
+writeStream.write("a");
+
+writeStream.on("open", (fd) => {
+  console.log("fd", fd) // when a writeStream is created, a file discriptor is assigned to it. It is a number. When a writeStream doesn't close, this fd stays in 
+                          // memory
+})  
+
+writeStream.on("finish", () => {
+  console.log("Finished") // logs nothing without writeStream.end()
+}) 
+
+writeStream.on("close", () => {
+  console.log("Closed")
+}) 
+
+writeStream.end("b"); // ends writeStream. Has a optional arguments which get write in file before ending. Fires finish event first then close event
+
+writeStream.write("a"); // throws error cause writeStream is already ended
