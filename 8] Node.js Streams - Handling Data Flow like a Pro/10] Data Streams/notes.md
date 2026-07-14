@@ -10,4 +10,12 @@ A process means a running task. When we start any application means we are start
 
 example: 
 
-suppose we open a terminal(bash, powershell, etc.) in VS Code. Terminal is also a process started by the VS Code. If we type any command like ls, pwd, etc., then the command which will run is a input. A input is going in terminal and this input goes through stdin stream 
+suppose we open a terminal(bash, powershell, etc.) in VS Code. Terminal is also a process started by the VS Code. If we type any command like ls, pwd, etc., then the command which will run is a input. A input is going in terminal and this input goes through stdin stream. The output that comes after is comes from stdout. stream. If an error or warning occurs, it is shown through stderr stream.
+
+Why Learn this?
+
+By default this streams are connected to keyboard or monitor. But they are very powerful. We can connect them with anything. We can connect one application stream with other application stream. Like one app's stdout stream to other app's stdin stream. By this, two application can communicate each other. One app does a task and result is shown on other app.
+
+---
+
+All the data streams are associated with a number. stdin: 0, stdout: 1 and stderr: 2. These numbers are called File Descriptor(fd). This number is assigned by OS to every file and also data streams. streams fd numbers are fixed.
