@@ -1,0 +1,4 @@
+stdout: Hi from script.js
+stderr: Hi from script.js
+stdout: Hi from script.js
+stderr: Hi from script.js
