@@ -1,288 +1,221 @@
-# Creating a UDP Server in Node.js
+# Transferring Files Using UDP in Node.js
 
-This project demonstrates how to create a UDP (User Datagram Protocol) server and client using Node.js' built-in `dgram` module. It also shows how a Node.js UDP server can communicate with a mobile device using a UDP Sender/Receiver application.
+This project demonstrates how to transfer files using the UDP protocol in Node.js with the `dgram` module. Unlike TCP, UDP is a connectionless protocol, meaning it simply sends packets without guaranteeing that they reach the destination or arrive in the correct order.
 
-## What You'll Learn
-
-- What UDP is
-- Creating a UDP server
-- Creating a UDP client
-- Sending UDP packets
-- Receiving UDP packets
-- Understanding `remoteAddress`
-- Sending responses back to the sender
-- Communicating with mobile devices over UDP
-- Difference between UDP and TCP
+The purpose of this project is to understand how UDP works internally and why reliable protocols such as TCP are preferred for file transfers.
 
 ---
 
 ## Technologies Used
 
 - Node.js
-- dgram (Core Node.js Module)
-
-No third-party packages are required.
-
----
-
-## Project Structure
-
-```
-.
-├── app.js        # UDP Server
-└── client.js     # UDP Client
-```
+- dgram (UDP Socket)
+- fs (File Streams)
 
 ---
 
-## Creating the UDP Server
+## How It Works
+
+### Client
+
+The client reads a file using a readable stream.
 
 ```javascript
-import dgram from "node:dgram";
+const readStream = createReadStream("video.mp4", {
+  highWaterMark: 1000,
+});
+```
 
+The file is divided into chunks of 1000 bytes.
+
+Whenever a chunk is read, it is immediately sent to the UDP server.
+
+```javascript
+readStream.on("data", (chunk) => {
+  socket.send(chunk, 4000, "SERVER_IP");
+});
+```
+
+After the entire file has been read, the client sends a special message called `EOF` (End Of File).
+
+```javascript
+readStream.on("end", () => {
+  socket.send("EOF", 4000, "SERVER_IP");
+});
+```
+
+---
+
+### Server
+
+The server creates a UDP socket and waits for incoming packets.
+
+```javascript
 const socket = dgram.createSocket("udp4");
 ```
 
-Creates a UDP socket using IPv4.
-
----
-
-## Listening for Messages
+A writable stream is created for the output file.
 
 ```javascript
-socket.on("message", (message, remoteAddress) => {
-  console.log(message.toString());
-  console.log(remoteAddress);
+const writeStream = createWriteStream("received-video.mp4");
+```
+
+Every UDP packet received is written directly into the file.
+
+```javascript
+socket.on("message", (message) => {
+  writeStream.write(message);
 });
 ```
 
-Whenever a UDP packet reaches the server, this event is triggered.
-
-`message`
-
-Contains the received data as a Buffer.
-
-```javascript
-message.toString();
-```
-
-Converts the Buffer into a readable string.
-
-Example:
-
-```
-Hi from Client.js
-```
+When the server receives the `EOF` message, it knows the client has finished sending data.
 
 ---
 
-## Understanding remoteAddress
+## Why This Doesn't Always Work
 
-Example output:
+Although the program may print:
 
-```javascript
-{
-  address: "10.114.110.23",
-  family: "IPv4",
-  port: 60852,
-  size: 17
-}
+```
+File uploaded successfully
 ```
 
-Meaning:
+this does **not** guarantee that the received file is complete.
 
-- address → Sender's IP Address
-- family → IPv4
-- port → Sender's temporary UDP port
-- size → Number of bytes received
+UDP provides **no reliability**.
+
+It does **not**
+
+- Guarantee packet delivery
+- Guarantee packet order
+- Retransmit lost packets
+- Detect duplicate packets
+- Perform flow control
+
+For example, the client may send:
+
+```
+Packet 1
+Packet 2
+Packet 3
+Packet 4
+Packet 5
+```
+
+The server may receive:
+
+```
+Packet 1
+Packet 3
+Packet 5
+Packet 2
+```
+
+or
+
+```
+Packet 2
+Packet 4
+Packet 5
+```
+
+This behavior is completely normal for UDP.
 
 ---
 
-## Sending a Response
+## Another Problem
 
-```javascript
-socket.send(
-  "Message Received Successfully on Server",
-  remoteAddress.port,
-  remoteAddress.address,
-);
+The client sends packets as quickly as the operating system can read the file.
+
+For a 263 MB file with a chunk size of 1000 bytes:
+
+```
+263 MB
+≈ 263,000 UDP packets
 ```
 
-The server sends the response back to the same device that sent the request.
+These packets are transmitted almost instantly.
+
+The receiver or the operating system cannot process them fast enough, causing packet loss.
 
 ---
 
-## Binding the Server
+## UDP Packet Size
 
-```javascript
-socket.bind({ port: 4000 }, () => {
-  console.log("Listening on Port 4000");
-});
+Although the maximum UDP payload is:
+
+```
+65,507 bytes
 ```
 
-The server starts listening for incoming UDP packets on port **4000**.
+Most Ethernet networks have an MTU of about:
+
+```
+1500 bytes
+```
+
+After subtracting IP and UDP headers, a payload between:
+
+- 512 bytes
+- 1024 bytes
+- 1200 bytes
+- 1400 bytes
+
+is generally considered safe.
 
 ---
 
-## Creating the UDP Client
+## Making UDP Reliable
 
-```javascript
-import dgram from "node:dgram";
+To reliably transfer files over UDP, additional mechanisms must be implemented.
 
-const socket = dgram.createSocket("udp4");
-```
+Each packet should contain:
 
----
+- Sequence Number
+- Data
+- Checksum
 
-## Sending a UDP Packet
+The server should:
 
-```javascript
-socket.send("Hi from Client.js", 4000, "10.114.110.23", () => {
-  console.log("Message Sent");
-});
-```
+- Verify packet order
+- Detect missing packets
+- Send acknowledgements (ACKs)
+- Request retransmission of lost packets
 
-The callback only indicates that Node.js handed the packet to the operating system. UDP does **not** guarantee that the packet reaches the server.
-
----
-
-## Receiving the Server Response
-
-```javascript
-socket.on("message", (message, remoteAddress) => {
-  console.log(message.toString());
-  console.log(remoteAddress);
-
-  socket.close();
-});
-```
-
-The client receives the reply sent by the server.
+This approach is commonly known as **Reliable UDP (RUDP)**.
 
 ---
 
-## Communicating with a Mobile Device
+## Why TCP Is Better for File Transfers
 
-This project also demonstrates communication with a mobile phone using a UDP Sender/Receiver application.
+TCP already provides:
 
-Mobile Configuration
+- Reliable delivery
+- Packet ordering
+- Retransmission of lost packets
+- Error detection
+- Flow control
+- Congestion control
 
-```
-Destination IP   : Your Computer IP
-Destination Port : 4000
-Message           : Hello from Android
-```
-
-The Node.js server receives the message and responds back to the mobile application.
-
-Example Server Output
-
-```
-Hello from Android
-
-{
-    address: '10.114.110.45',
-    family: 'IPv4',
-    port: 51234,
-    size: 18
-}
-```
-
-The mobile app then receives:
-
-```
-Message Received Successfully on Server
-```
+This is why protocols such as HTTP, HTTPS, FTP, SSH, and database connections all use TCP instead of UDP.
 
 ---
 
-## Communication Flow
+## What I Learned
 
-```
-                Node.js Client
-                      |
-                      | UDP Packet
-                      ▼
-             -----------------
-             Node.js Server
-             Port : 4000
-             -----------------
-                      ▲
-                      |
-                 UDP Response
-```
-
-Mobile Device
-
-```
-             Android Phone
-         UDP Sender/Receiver
-                |
-                | UDP Packet
-                ▼
-         -----------------
-         Node.js Server
-         Port : 4000
-         -----------------
-                ▲
-                |
-          UDP Response
-```
+- Creating UDP servers using the `dgram` module
+- Sending and receiving UDP packets
+- Streaming files with Node.js
+- Understanding why UDP is considered unreliable
+- Why acknowledgements and sequence numbers are necessary
+- The difference between UDP and TCP for file transfer
 
 ---
 
-## UDP Characteristics
+## Future Improvements
 
-### Advantages
-
-- Extremely fast
-- Lightweight protocol
-- Low latency
-- No connection establishment
-- Minimal overhead
-
-### Limitations
-
-- No delivery guarantee
-- No packet ordering
-- No retransmission
-- No congestion control
-
----
-
-## TCP vs UDP
-
-| TCP                       | UDP                    |
-| ------------------------- | ---------------------- |
-| Connection-oriented       | Connectionless         |
-| Reliable                  | Unreliable             |
-| Ordered delivery          | No ordering            |
-| Slower                    | Faster                 |
-| Error checking & recovery | Minimal error checking |
-| Larger overhead           | Very small overhead    |
-
----
-
-## Real-World Applications
-
-- DNS
-- Online Multiplayer Games
-- Video Streaming
-- Voice Calls (VoIP)
-- IoT Devices
-- Live Broadcasting
-- Device Discovery
-- Network Monitoring
-
----
-
-## Key Takeaways
-
-- Created a UDP server using Node.js.
-- Created a UDP client using Node.js.
-- Sent and received UDP packets.
-- Understood the `message` event and `remoteAddress`.
-- Sent responses back to the sender.
-- Communicated between Node.js and a mobile UDP Sender/Receiver application.
-- Learned the differences between UDP and TCP.
-- Explored how UDP is used in real-world networking applications.
+- Add sequence numbers
+- Add acknowledgements (ACK)
+- Retransmit lost packets
+- Verify packet integrity using checksums
+- Implement a simple Reliable UDP protocol
