@@ -17,6 +17,10 @@ server.listen(4000, () => {
 // });
 
 // new device connection
-server.on("connection", () => {
+server.on("connection", (socket) => { // socket - duplex stream
+    socket.on("data", (chunk) => {
+        console.log(chunk.toString());
+    }) 
+    console.log(socket.address());
     console.log("Client Connected");
 })
