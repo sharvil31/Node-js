@@ -1,7 +1,13 @@
 const response = await fetch("http://192.168.0.100:4000");
 
-const data = await response.text();
+console.log({ response });
 
-console.log(data);
+// const data = await response.text();
 
-// for await (const chunk of response.body) console.log(chunk);
+// console.log(data);
+
+const decoder = new TextDecoder()
+for await (const chunk of response.body) {
+    // console.log(JSON.parse(decoder.decode(chunk)));
+    console.log(chunk);
+}

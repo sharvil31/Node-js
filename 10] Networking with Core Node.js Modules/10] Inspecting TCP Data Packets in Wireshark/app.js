@@ -6,12 +6,30 @@ const server = net.createServer(async (socket) => {
   const { size } = await fileHandle.stat();
   const readStream = fileHandle.createReadStream({ highWaterMark: 32 * 1024 });
   socket.write("HTTP/1.1 200 OKAY\n");
-  socket.write("Access-Control-Allow-Origin: *\n");
-  socket.write("Content-Type: text/txt; charset=utf-8\n");
-  socket.write(`Content-Length: ${size}\n`);
-  socket.write("\n\n");
+  socket.write("Access-Control-Allow-Origin: *\n\n");
+  // socket.write("Content-Type: text/txt; charset=utf-8\n");
+  // socket.write(`Content-Length: 3`);
+  // socket.write("\n\nHii");
 
-  readStream.pipe(socket);
+  readStream.on("data", (chunk) => {
+    socket.write(chunk);
+    readStream.pause();
+  setTimeout(() => {
+      readStream.resume()
+    }, 500)
+  })
+
+  // setTimeout(() => {
+  //   socket.write(`\n\n{"name": "sharvil"}`)
+  // }, 2000);
+
+  // setTimeout(() => {
+  //   socket.end()
+  // }, 5000);
+
+  // socket.end();
+
+  // readStream.pipe(socket);
 
   socket.on("close", () => {
     console.log(socket.remoteAddress, ": Client disconnected");
