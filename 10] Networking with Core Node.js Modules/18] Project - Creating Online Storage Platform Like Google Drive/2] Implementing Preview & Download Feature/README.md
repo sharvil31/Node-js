@@ -1,115 +1,163 @@
 # Online Storage Platform (Google Drive-like)
 
-A Node.js project for building a simple online storage platform similar
-to Google Drive. The current implementation focuses on **reading files
-and browsing directories** from a storage folder.
+A Node.js project for building a simple online storage platform similar to Google Drive. The project currently supports **directory browsing, file reading/previewing, and file downloading** using Node.js HTTP APIs and file streams.
 
 ## Current Progress
 
-### ✅ Implemented: Read Functionality
+### ✅ Implemented Features
 
-The application can:
-
--   Start an HTTP server using Node.js `http` module.
--   Browse the `/storage` directory.
--   Read directory contents using `readdir()`.
--   Detect whether a requested path is a directory or a file.
--   Generate a dynamic HTML directory listing.
--   Open/read files using `fs/promises.open()`.
--   Create a readable stream with `fileHandle.createReadStream()`.
--   Pipe file data directly to the HTTP response.
--   Handle missing files/directories with a `Not Found!` response.
--   Ignore browser favicon requests.
+- HTTP server using Node.js `http` module
+- Directory browsing
+- Directory contents returned as JSON
+- File reading using `fs/promises.open()`
+- File streaming using `createReadStream()`
+- File previewing in the browser
+- File downloading using a query parameter
+- MIME type detection using the `mime-types` package
+- `Content-Type` response header
+- `Content-Length` response header
+- `Content-Disposition: attachment` for downloads
+- CORS header support
+- Basic error handling for missing files/directories
 
 ## Technologies Used
 
--   Node.js
--   HTTP module
--   File System Promises API
--   Readable Streams
--   HTML
--   JavaScript
-
-## Project Structure
-
-``` text
-storage/
-├── images/
-├── 2-11 Reverse Integer.mkv
-├── hello.txt
-├── Node.js Curriculum.pdf
-├── numbers.txt
-├── app.js
-├── boilerPlate.html
-└── package.json
-```
-
-> The exact files inside `storage/` can change as the project develops.
+- Node.js
+- JavaScript
+- HTTP module
+- `fs/promises`
+- Readable Streams
+- `mime-types`
+- JSON
+- HTML
 
 ## How It Works
 
-When a request arrives, the server checks the requested URL.
+The application uses the requested URL to determine whether the client wants a directory or a file.
 
-### 1. Directory Request
+### 1. Directory Browsing
 
-If the requested path is a directory:
+When the requested path points to a directory, the application reads its contents and returns them as JSON.
 
-``` js
-const itemsList = await readdir(`./storage${decodeURIComponent(req.url)}`);
+```js
+const itemsList = await readdir(`./storage${url}`);
+res.setHeader("Content-Type", "application/json");
+res.end(JSON.stringify(itemsList));
 ```
 
-The application creates links for the files and folders inside that
-directory and injects them into the HTML template.
+### 2. File Preview
 
-### 2. File Request
+When a file is requested without the download action, the server streams the file to the response.
 
-If the requested path is a file:
+The MIME type is determined from the requested file:
 
-``` js
-const fileHandle = await open(`./storage${decodeURIComponent(req.url)}`);
-const readStream = fileHandle.createReadStream();
+```js
+const contentType = mime.getType(url.slice(1));
+```
 
+The response includes the content type and file size:
+
+```js
+res.setHeader("Content-Type", mime.getType(url.slice(1)));
+res.setHeader("Content-Length", stats.size);
+```
+
+The file is then streamed:
+
+```js
 readStream.pipe(res);
 ```
 
-Instead of loading the entire file into memory, the file is read through
-a stream and sent to the browser.
+This allows supported files to be displayed or played directly by the browser.
 
-## Why Streams?
+### 3. File Download
 
-Using a readable stream is important for a storage application because
-files can be large.
+A download can be requested using:
 
-A stream allows the server to:
+```text
+?action=download
+```
 
--   Read data in chunks.
--   Avoid loading the entire file into RAM.
--   Send data progressively to the client.
--   Handle large files more efficiently.
+For example:
+
+```text
+http://localhost:80/hello.txt?action=download
+```
+
+The server then sends:
+
+```http
+Content-Disposition: attachment; filename="hello.txt"
+```
+
+This tells the browser to download the file instead of displaying it.
+
+## Preview vs Download
+
+The same file endpoint supports two behaviors:
+
+```text
+/file.ext
+```
+
+→ Preview/read the file when the browser supports its MIME type.
+
+```text
+/file.ext?action=download
+```
+
+→ Download the file.
+
+## Streams
+
+The project uses Node.js readable streams instead of loading the complete file into memory.
+
+```js
+const readStream = fileHandle.createReadStream();
+readStream.pipe(res);
+```
+
+This is useful for large files because data can be processed and sent in chunks.
+
+## Project Structure
+
+```text
+project/
+├── storage/
+│   ├── images/
+│   ├── hello.txt
+│   ├── numbers.txt
+│   └── ...
+├── app.js
+├── boilerPlate.html
+├── package.json
+├── package-lock.json
+└── README.md
+```
 
 ## Running the Project
 
-Install dependencies if required:
+Install dependencies:
 
-``` bash
+```bash
 npm install
 ```
 
 Start the server:
 
-``` bash
+```bash
 node app.js
 ```
 
 Then open:
 
-``` text
-http://localhost:3000
+```text
+http://localhost:80
 ```
 
-## Current Architecture
+## Request Flow
 
-``` text
+```text
 Browser
    │
    │ HTTP Request
@@ -117,40 +165,45 @@ Browser
 Node.js HTTP Server
    │
    ├── Directory?
-   │      │
-   │      └── Read directory → Generate HTML → Send response
+   │      └── Read directory → Return JSON
    │
    └── File?
           │
-          └── Open file → Create Read Stream → Pipe to response
+          ├── Preview
+          │      └── Detect MIME type → Set headers → Stream file
+          │
+          └── Download
+                 └── Set Content-Disposition → Stream file
 ```
 
-## What's Next?
+## What I Learned
 
-The next features planned for this storage platform are:
+- Node.js HTTP servers
+- HTTP request and response headers
+- File system APIs
+- File handles
+- Readable streams
+- Stream piping
+- MIME types
+- `Content-Type`
+- `Content-Length`
+- `Content-Disposition`
+- Query parameters
+- Dynamic file serving
+- Directory handling
+- Browser file preview behavior
 
-### 🔜 Preview Functionality
+## Next Steps
 
-Files such as images, videos, PDFs, and text files will be previewed
-directly in the browser where possible.
+With reading, preview, and download functionality completed, the next features can include:
 
-### 🔜 Download Functionality
-
-Add support for downloading files from the storage platform instead of
-only reading them through the browser.
-
-## Learning Goals
-
-This project is helping me understand:
-
--   Node.js HTTP servers
--   File system APIs
--   File handles
--   Readable streams
--   Stream piping
--   HTTP request/response handling
--   Dynamic HTML generation
--   Building a file-storage application from scratch
+- File upload
+- File deletion
+- File renaming
+- Folder creation
+- Better navigation/UI
+- File metadata
+- Authentication and authorization
 
 ## Status
 
@@ -158,8 +211,8 @@ This project is helping me understand:
 
 Current milestone:
 
-**Directory browsing + file reading implemented**
+**Directory browsing + Read + Preview + Download implemented**
 
 Next milestone:
 
-**File preview + file download**
+**Upload and file-management functionality**
