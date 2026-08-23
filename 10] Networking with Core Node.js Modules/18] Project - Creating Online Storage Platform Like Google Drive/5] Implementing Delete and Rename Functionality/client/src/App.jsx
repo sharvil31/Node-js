@@ -4,6 +4,7 @@ import "./App.css";
 function App() {
   const [directoryItems, setDirectoryItems] = useState([]);
   const [progress, setProgress] = useState(0);
+  const [newFilename, setNewFilename] = useState("");
 
   async function getDirectoryItems() {
     const response = await fetch("http://192.168.0.106/");
@@ -14,7 +15,7 @@ function App() {
     getDirectoryItems();
   }, []);
 
-  async function handleChange(e) {
+  async function uploadFile(e) {
     const file = e.target.files[0];
     const xhr = new XMLHttpRequest();
 
@@ -41,17 +42,38 @@ function App() {
     getDirectoryItems();
   }
 
+  async function renameFile(oldFilename) {
+    setNewFilename(oldFilename);
+  }
+
+  async function saveFilename(oldFilename) {
+    const response = await fetch("http://192.168.0.106/rename", {
+      method: "PATCH",
+      body: JSON.stringify({ oldFilename, newFilename }),
+    });
+    const data = await response.text();
+    console.log(data);
+    setNewFilename("");
+    getDirectoryItems();
+  }
+
   return (
     <>
       <h1>My Files</h1>
-      <input type="file" onChange={handleChange} />
+      <input type="file" onChange={uploadFile} />
+      <input
+        type="text"
+        onChange={(e) => setNewFilename(e.target.value)}
+        value={newFilename}
+      />
       <p>Progress: {progress}%</p>
       {directoryItems.map((item, i) => (
         <div key={i}>
           {item} <a href={`http://192.168.0.106/${item}?action=open`}>Open</a>{" "}
           <a href={`http://192.168.0.106/${item}?action=download`}>Download</a>
+          <button onClick={() => renameFile(item)}>Rename</button>
+          <button onClick={() => saveFilename(item)}>Save</button>
           <button onClick={() => handleDelete(item)}>Delete</button>
-          <button>Rename</button>
           <br />
         </div>
       ))}

@@ -1,5 +1,5 @@
 import { createWriteStream } from "fs";
-import { open, readdir, rm } from "fs/promises";
+import { open, readdir, rename, rm } from "fs/promises";
 import http from "http";
 import mime from "mime-types";
 
@@ -66,6 +66,15 @@ const server = http.createServer(async (req, res) => {
       } catch (error) {
         res.end(error.message);
       }
+    });
+  } else if (req.method === "PATCH") {
+    req.on("data", async (chunk) => {
+      const data = JSON.parse(chunk.toString());
+      await rename(
+        `./storage/${data.oldFilename}`,
+        `./storage/${data.newFilename}`,
+      );
+      res.end("File renamed successfully");
     });
   }
 });
