@@ -1,260 +1,36 @@
-# Adding Global Middleware with `app.use()` in Express
+# Route-Specific Middleware in Express.js
 
-## 📌 Overview
+While learning Express.js, I learned how **route-specific middleware** can be used to run some logic only for requests that match a particular route path.
 
-While learning Express.js, I learned how to add **global middleware** using the `app.use()` method.
+## What is Route-Specific Middleware?
 
-Middleware functions run during the request-response cycle and can perform tasks such as:
+Route-specific middleware is middleware that is attached to a specific route path using `app.use()`.
 
-- Logging requests
-- Parsing request bodies
-- Authentication and authorization
-- Modifying the request or response
-- Error handling
-- Running common logic for multiple routes
+Unlike global middleware, which can run for many or all incoming requests, route-specific middleware is used when we want middleware logic to apply only to a particular path.
 
----
-
-## 🔹 What is Global Middleware?
-
-A global middleware is middleware that can be executed for **multiple routes** instead of being attached to only one specific route.
-
-For example:
+### Basic Syntax
 
 ```js
-app.use((req, res, next) => {
-  console.log(req.url);
-  next();
-});
-```
-
-Because no specific path is provided, this middleware can match requests coming to different routes.
-
----
-
-## 🔹 Understanding `app.use()`
-
-The basic syntax is:
-
-```js
-app.use(middlewareFunction);
-```
-
-A middleware function generally receives three parameters:
-
-```js
-(req, res, next);
-```
-
-- `req` → Request object
-- `res` → Response object
-- `next` → Function used to continue to the next matching middleware or route
-
-Example:
-
-```js
-app.use((req, res, next) => {
-  console.log(req.headers);
-  console.log(req.url);
+app.use("/admin", (req, res, next) => {
+  // middleware logic
 
   next();
 });
 ```
 
----
+Here, the middleware is mounted on `/admin`.
 
-## 🔹 How `next()` Works
-
-Express processes middleware and routes **from top to bottom**, in the order in which they are registered.
-
-For example:
-
-```js
-app.use((req, res, next) => {
-  console.log("Global Middleware");
-  next();
-});
-
-app.get("/login", (req, res) => {
-  res.end("Logged in");
-});
-```
-
-When `/login` is requested:
+For example, a request such as:
 
 ```text
-GET /login
-     ↓
-Global Middleware
-     ↓
-next()
-     ↓
-/login route
-     ↓
-Response
+POST /admin
 ```
 
-Calling `next()` tells Express:
-
-> Continue searching from this point for the next middleware or route that matches the request.
+can pass through this middleware before reaching the actual route handler.
 
 ---
 
-## 🔹 Middleware Order Matters
-
-Consider:
-
-```js
-app.get("/login", (req, res) => {
-  res.end("Logged in");
-});
-
-app.use((req, res, next) => {
-  console.log("Global Middleware");
-  next();
-});
-```
-
-For a request to `/login`, the `/login` route executes first.
-
-Since:
-
-```js
-res.end("Logged in");
-```
-
-ends the response, Express does not continue to the middleware below it.
-
-Therefore, the global middleware will not execute for that request.
-
-### Important Rule
-
-> Middleware registered before a route can run before that route. Middleware registered after a route will only run if the request reaches it.
-
----
-
-## 🔹 Express Built-in Middleware
-
-Express also provides built-in middleware.
-
-One common example is:
-
-```js
-app.use(express.json());
-```
-
-`express.json()` creates and returns a middleware function that parses incoming JSON request bodies.
-
-For example:
-
-```js
-app.use(express.json());
-
-app.post("/user", (req, res) => {
-  console.log(req.body);
-  res.end("Post Sharvil");
-});
-```
-
-If the client sends:
-
-```json
-{
-  "name": "Sharvil"
-}
-```
-
-Express parses the JSON and makes it available through:
-
-```js
-req.body;
-```
-
-Conceptually:
-
-```text
-JSON Request Body
-       ↓
-express.json()
-       ↓
-Parse JSON
-       ↓
-req.body
-       ↓
-next()
-       ↓
-POST /user route
-```
-
----
-
-## 🔹 `express.json()` is a Middleware Factory
-
-An important thing I learned is that:
-
-```js
-express.json();
-```
-
-returns a middleware function.
-
-Conceptually:
-
-```js
-const jsonParser = express.json();
-
-app.use(jsonParser);
-```
-
-So:
-
-```js
-app.use(express.json());
-```
-
-means:
-
-1. Call `express.json()`
-2. Get the JSON parsing middleware
-3. Register that middleware using `app.use()`
-
----
-
-## 🔹 Global Middleware vs Route Middleware
-
-### Global Middleware
-
-```js
-app.use((req, res, next) => {
-  console.log("Global Middleware");
-  next();
-});
-```
-
-Can run for multiple matching requests.
-
-### Route-specific Middleware
-
-```js
-app.get(
-  "/user",
-  (req, res, next) => {
-    console.log("User Middleware");
-    next();
-  },
-  (req, res) => {
-    res.end("User");
-  },
-);
-```
-
-This middleware is associated specifically with the `/user` route.
-
----
-
-## 🔹 My Example
-
-My Express application uses `express.json()` as global middleware:
+## Example
 
 ```js
 import express from "express";
@@ -263,21 +39,19 @@ const app = express();
 
 app.use(express.json());
 
-app.get("/", (req, res) => {
-  res.end("Home Route");
+app.use("/admin", (req, res, next) => {
+  console.log(req.url);
+  console.log(req.originalUrl);
+
+  if (req.body.password === "secret") {
+    next();
+  } else {
+    res.end("Invalid Credentials");
+  }
 });
 
-app.get("/login", (req, res) => {
-  res.end("Logged in");
-});
-
-app.get("/user", (req, res) => {
-  res.end("Sharvil");
-});
-
-app.post("/user", (req, res) => {
-  console.log(req.body);
-  res.end("Post Sharvil");
+app.post("/admin", (req, res) => {
+  res.end("Hello Admin");
 });
 
 app.listen(4000, () => {
@@ -285,26 +59,262 @@ app.listen(4000, () => {
 });
 ```
 
+## How This Works
+
+Suppose the client sends:
+
+```http
+POST /admin
+Content-Type: application/json
+```
+
+with:
+
+```json
+{
+  "name": "Sharvil Amburle",
+  "password": "secret"
+}
+```
+
+The request flow is:
+
+```text
+POST /admin
+     |
+     v
+app.use("/admin", middleware)
+     |
+     v
+Check password
+     |
+   +---+---+
+   |       |
+ valid   invalid
+   |       |
+ next()   response
+   |       |
+   v       v
+app.post   "Invalid Credentials"
+("/admin")
+   |
+   v
+"Hello Admin"
+```
+
+If the password is correct, `next()` passes control to the next matching middleware or route handler.
+
+If the password is incorrect, the middleware sends a response and does not call `next()`, so the request does not continue to the next handler.
+
 ---
 
-## 🧠 Key Takeaways
+## Understanding `req.url` and `req.originalUrl`
 
-- `app.use()` is used to register middleware.
-- Middleware is processed in the order it is registered.
-- A global middleware can apply to multiple routes.
-- `next()` tells Express to continue through the middleware/route stack.
-- If middleware sends a response, the request-response cycle can end there.
-- Middleware placed after a route may not execute if that route ends the response.
-- `express.json()` is built-in Express middleware for parsing JSON request bodies.
-- `express.json()` returns a middleware function.
-- Parsed JSON data becomes available through `req.body`.
+When middleware is mounted using `app.use("/admin", ...)`, Express treats `/admin` as the middleware's mount path.
+
+For:
+
+```text
+POST /admin
+```
+
+inside the middleware, you can see approximately:
+
+```js
+req.url          // "/"
+req.originalUrl  // "/admin"
+```
+
+For:
+
+```text
+POST /admin/users
+```
+
+you can see approximately:
+
+```js
+req.url          // "/users"
+req.originalUrl  // "/admin/users"
+```
+
+So:
+
+- `req.url` represents the URL relative to the mounted middleware.
+- `req.originalUrl` represents the original URL requested by the client.
 
 ---
 
-## 🚀 What I Learned
+## Route Matching with `app.use()`
 
-The most important concept I understood is that Express works like a **middleware/route stack**.
+One important thing I learned is that `app.use()` performs **path-prefix matching**.
 
-A request moves through that stack from top to bottom, and `next()` allows Express to continue looking for the next matching handler.
+For example:
 
-This understanding will be useful when learning authentication, authorization, logging, validation, error handling, and other middleware patterns in Express.js.
+```js
+app.use("/users", (req, res, next) => {
+  console.log("Users middleware");
+  next();
+});
+```
+
+This middleware can match paths such as:
+
+```text
+/users
+/users/1
+/users/profile
+/users/1/orders
+```
+
+It should be thought of as matching a path prefix rather than simply using JavaScript's `startsWith()` method.
+
+---
+
+## Middleware Execution Order
+
+Express checks middleware and routes in the order in which they are registered.
+
+For example:
+
+```js
+app.use("/users", (req, res, next) => {
+  console.log("First");
+  next();
+});
+
+app.use("/users/1", (req, res) => {
+  res.end("Second");
+});
+```
+
+For:
+
+```text
+GET /users/1
+```
+
+the output will be:
+
+```text
+First
+Second
+```
+
+because `/users` middleware is registered first and calls `next()`.
+
+If the first middleware sends a response instead:
+
+```js
+app.use("/users", (req, res) => {
+  res.end("First");
+});
+```
+
+then the request ends there, and the `/users/1` middleware will not execute.
+
+This helped me understand why **middleware order matters in Express.js**.
+
+---
+
+## `next()` is Important
+
+`next()` tells Express:
+
+> "This middleware has finished its work. Continue processing the request."
+
+Example:
+
+```js
+app.use("/admin", (req, res, next) => {
+  if (req.body.password === "secret") {
+    next();
+  } else {
+    res.end("Invalid Credentials");
+  }
+});
+```
+
+There are two possible paths:
+
+### Valid credentials
+
+```text
+Middleware
+    |
+    v
+next()
+    |
+    v
+Route Handler
+```
+
+### Invalid credentials
+
+```text
+Middleware
+    |
+    v
+Invalid Credentials
+    |
+    v
+Request ends
+```
+
+---
+
+## Route-Specific vs Global Middleware
+
+### Global Middleware
+
+```js
+app.use((req, res, next) => {
+  console.log("Runs for matching requests");
+  next();
+});
+```
+
+It is commonly used for logic that should apply broadly, such as logging or common request processing.
+
+### Route-Specific Middleware
+
+```js
+app.use("/admin", (req, res, next) => {
+  // Admin-specific logic
+  next();
+});
+```
+
+It is useful when middleware logic should apply specifically to a particular section of the application.
+
+Examples include:
+
+- Authentication checks
+- Authorization checks
+- Admin access checks
+- Request validation
+- Route-specific logging
+- Permission checks
+
+---
+
+## What I Learned
+
+My understanding of route-specific middleware in Express.js:
+
+1. `app.use("/path", middleware)` attaches middleware to a specific path.
+2. `app.use()` uses path-prefix matching.
+3. Express checks middleware and routes in registration order.
+4. `next()` passes control to the next matching middleware or route.
+5. Sending a response without calling `next()` ends the request.
+6. `req.url` can change relative to the middleware's mount path.
+7. `req.originalUrl` keeps the original requested URL.
+8. Route-specific middleware is useful for things like authentication, authorization, and validation.
+
+## Conclusion
+
+Route-specific middleware gives us a way to control **where middleware logic should run** instead of applying the same logic to every route.
+
+The main concept I took away is:
+
+> **A request moves through the middleware stack in order, and `next()` decides whether processing should continue.**
