@@ -1,4 +1,5 @@
 import express from "express";
+import { createWriteStream } from "fs";
 import { readdir, rename, rm } from "fs/promises";
 
 const app = express();
@@ -28,12 +29,23 @@ app.get("/:filename", (req, res) => {
   res.sendFile(`${import.meta.dirname}/storage/${filename}`);
 });
 
+// Create
+app.post("/:filename", async (req, res) => {
+  const { filename } = req.params;
+  const writeStream = createWriteStream(`./storage/${filename}`);
+  req.pipe(writeStream);
+  req.on("end", () => {
+    writeStream.end();
+    res.json({ message: "File uploaded on the server" });
+  });
+});
+
 // Update
 app.patch("/:filename", async (req, res) => {
   const { filename } = req.params;
   try {
     await rename(`./storage/${filename}`, `./storage/${req.body.newFilename}`);
-    res.json({message: "Renamed Successfully"});
+    res.json({ message: "Renamed Successfully" });
   } catch (error) {
     res.json({ message: "Rename Failed!" });
   }
