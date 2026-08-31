@@ -1,36 +1,29 @@
 import express from "express";
 import { createWriteStream } from "fs";
-import { readdir, rename, rm } from "fs/promises";
+import { readdir, rename, rm, stat } from "fs/promises";
+import cors from "cors";
 
 const app = express();
 
 app.use(express.json());
+app.use(cors());
 
-app.use((req, res, next) => {
-  res.set({
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "*",
-    "Access-Control-Allow-Headers": "*",
-  });
-  next();
-});
-
-// Read
-app.get("/", async (req, res) => {
-  const filesList = await readdir("./storage");
-  res.json(filesList);
-});
-
-app.get("/:filename", (req, res) => {
-  const { filename } = req.params;
-  if (req.query.action === "download") {
-    res.set("Content-Disposition", "attachment");
+// Directory Read
+app.get("/directory/:dirname?", async (req, res) => {
+  // Optional Dynamic Route
+  const { dirname } = req.params;
+  const fullDirPath = `./storage/${dirname ?? ""}`;
+  const filesList = await readdir(fullDirPath);
+  const resData = [];
+  for (let item of filesList) {
+    const stats = await stat(`${fullDirPath}/${item}`);
+    resData.push({ name: item, isDirectory: stats.isDirectory() });
   }
-  res.sendFile(`${import.meta.dirname}/storage/${filename}`);
+  res.json(resData);
 });
 
 // Create
-app.post("/:filename", async (req, res) => {
+app.post("/files/:filename", async (req, res) => {
   const { filename } = req.params;
   const writeStream = createWriteStream(`./storage/${filename}`);
   req.pipe(writeStream);
@@ -40,8 +33,17 @@ app.post("/:filename", async (req, res) => {
   });
 });
 
+// Download Files
+app.get("/files/:filename", (req, res) => {
+  const { filename } = req.params;
+  if (req.query.action === "download") {
+    res.set("Content-Disposition", "attachment");
+  }
+  res.sendFile(`${import.meta.dirname}/storage/${filename}`);
+});
+
 // Update
-app.patch("/:filename", async (req, res) => {
+app.patch("/files/:filename", async (req, res) => {
   const { filename } = req.params;
   try {
     await rename(`./storage/${filename}`, `./storage/${req.body.newFilename}`);
@@ -52,7 +54,7 @@ app.patch("/:filename", async (req, res) => {
 });
 
 // Delete
-app.delete("/:filename", async (req, res) => {
+app.delete("/files/:filename", async (req, res) => {
   const { filename } = req.params;
   const filePath = `./storage/${filename}`;
   try {
