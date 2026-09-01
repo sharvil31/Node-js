@@ -1,7 +1,8 @@
 import express from "express";
 import { createWriteStream } from "fs";
-import { readdir, rename, rm, stat } from "fs/promises";
+import { mkdir, readdir, rename, rm, stat } from "fs/promises";
 import cors from "cors";
+import path from "path";
 
 const app = express();
 
@@ -20,6 +21,17 @@ app.get("/directory/*", async (req, res) => {
     resData.push({ name: item, isDirectory: stats.isDirectory() });
   }
   res.json(resData);
+});
+
+// Directory Create
+app.post("/directory/*", async (req, res) => {
+  const { 0: filePath } = req.params;
+  try {
+    await mkdir(`./storage/${filePath}/${req.body.newDirName}`);
+    res.json({ message: "Directory Created Successfully" });
+  } catch (error) {
+    res.json({ message: "Directory Creation Failed!" });
+  }
 });
 
 // Create
