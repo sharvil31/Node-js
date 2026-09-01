@@ -9,9 +9,9 @@ app.use(express.json());
 app.use(cors());
 
 // Directory Read
-app.get("/directory/:dirname?", async (req, res) => {
+app.get("/directory/*", async (req, res) => {
   // Optional Dynamic Route
-  const { dirname } = req.params;
+  const { 0: dirname } = req.params;
   const fullDirPath = `./storage/${dirname ?? ""}`;
   const filesList = await readdir(fullDirPath);
   const resData = [];
@@ -23,9 +23,9 @@ app.get("/directory/:dirname?", async (req, res) => {
 });
 
 // Create
-app.post("/files/:filename", async (req, res) => {
-  const { filename } = req.params;
-  const writeStream = createWriteStream(`./storage/${filename}`);
+app.post("/files/*", async (req, res) => {
+  const { 0: filePath } = req.params;
+  const writeStream = createWriteStream(`./storage/${filePath}`);
   req.pipe(writeStream);
   req.on("end", () => {
     writeStream.end();
@@ -33,20 +33,21 @@ app.post("/files/:filename", async (req, res) => {
   });
 });
 
-// Download Files
-app.get("/files/:filename", (req, res) => {
-  const { filename } = req.params;
+// Download and open Files
+app.get("/files/*", (req, res) => {
+  const { 0: filePath } = req.params;
+  console.log(req.params);
   if (req.query.action === "download") {
     res.set("Content-Disposition", "attachment");
   }
-  res.sendFile(`${import.meta.dirname}/storage/${filename}`);
+  res.sendFile(`${import.meta.dirname}/storage/${filePath}`);
 });
 
 // Update
-app.patch("/files/:filename", async (req, res) => {
-  const { filename } = req.params;
+app.patch("/files/*", async (req, res) => {
+  const { 0: filePath } = req.params;
   try {
-    await rename(`./storage/${filename}`, `./storage/${req.body.newFilename}`);
+    await rename(`./storage/${filePath}`, `./storage/${req.body.newFilename}`);
     res.json({ message: "Renamed Successfully" });
   } catch (error) {
     res.json({ message: "Rename Failed!" });
@@ -54,14 +55,14 @@ app.patch("/files/:filename", async (req, res) => {
 });
 
 // Delete
-app.delete("/files/:filename", async (req, res) => {
-  const { filename } = req.params;
-  const filePath = `./storage/${filename}`;
+app.delete("/files/*", async (req, res) => {
+  const { 0: filePath } = req.params;
+  const path = `./storage/${filePath}`;
   try {
-    await rm(filePath);
+    await rm(path, { recursive: true });
     res.json({ message: "File Deleted Successfully" });
   } catch (err) {
-    res.status(404).json({ message: "File Not Found!" });
+    res.status(404).json({ message: err.message });
   }
 });
 
