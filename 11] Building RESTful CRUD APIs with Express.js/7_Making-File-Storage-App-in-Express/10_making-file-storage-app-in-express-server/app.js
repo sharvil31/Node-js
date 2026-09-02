@@ -12,20 +12,25 @@ app.use(cors());
 // Directory Read
 app.get("/directory/*", async (req, res) => {
   // Optional Dynamic Route
-  const { 0: dirname } = req.params;
+  const dirname = path.join("/", req.params[0]); // Fixing Path Traversal Vulnerability with Path Module
+  console.log(dirname);
   const fullDirPath = `./storage/${dirname ?? ""}`;
-  const filesList = await readdir(fullDirPath);
-  const resData = [];
-  for (let item of filesList) {
-    const stats = await stat(`${fullDirPath}/${item}`);
-    resData.push({ name: item, isDirectory: stats.isDirectory() });
+  try {
+    const filesList = await readdir(fullDirPath);
+    const resData = [];
+    for (let item of filesList) {
+      const stats = await stat(`${fullDirPath}/${item}`);
+      resData.push({ name: item, isDirectory: stats.isDirectory() });
+    }
+    res.json(resData);
+  } catch (error) {
+    res.json({ message: error.message });
   }
-  res.json(resData);
 });
 
 // Directory Create
 app.post("/directory/*", async (req, res) => {
-  const { 0: filePath } = req.params;
+  const filePath = path.join("/", req.params[0]);
   try {
     await mkdir(`./storage/${filePath}/${req.body.newDirName}`);
     res.json({ message: "Directory Created Successfully" });
@@ -36,7 +41,7 @@ app.post("/directory/*", async (req, res) => {
 
 // Create
 app.post("/files/*", async (req, res) => {
-  const { 0: filePath } = req.params;
+  const filePath = path.join("/", req.params[0]);
   const writeStream = createWriteStream(`./storage/${filePath}`);
   req.pipe(writeStream);
   req.on("end", () => {
@@ -47,17 +52,18 @@ app.post("/files/*", async (req, res) => {
 
 // Download and open Files
 app.get("/files/*", (req, res) => {
-  const { 0: filePath } = req.params;
-  console.log(req.params);
+  const filePath = path.join("/", req.params[0]);
   if (req.query.action === "download") {
     res.set("Content-Disposition", "attachment");
   }
-  res.sendFile(`${import.meta.dirname}/storage/${filePath}`);
+  res.sendFile(`${import.meta.dirname}/storage/${filePath}`, (err) => {
+    if (err) res.json({ error: "File Not Found!" });
+  });
 });
 
 // Update
 app.patch("/files/*", async (req, res) => {
-  const { 0: filePath } = req.params;
+  const filePath = path.join("/", req.params[0]);
   try {
     await rename(`./storage/${filePath}`, `./storage/${req.body.newFilename}`);
     res.json({ message: "Renamed Successfully" });
@@ -68,10 +74,10 @@ app.patch("/files/*", async (req, res) => {
 
 // Delete
 app.delete("/files/*", async (req, res) => {
-  const { 0: filePath } = req.params;
-  const path = `./storage/${filePath}`;
+  const filePath = path.join("/", req.params[0]);
+  const fullPath = `./storage/${filePath}`;
   try {
-    await rm(path, { recursive: true });
+    await rm(fullPath, { recursive: true });
     res.json({ message: "File Deleted Successfully" });
   } catch (err) {
     res.status(404).json({ message: err.message });
