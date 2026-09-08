@@ -8,7 +8,6 @@ const router = express.Router();
 router.get("/?*", async (req, res) => {
   // Optional Dynamic Route
   const dirname = path.join("/", req.params[0]); // Fixing Path Traversal Vulnerability with Path Module
-  console.log(dirname);
   const fullDirPath = `./storage/${dirname ?? ""}`;
   try {
     const filesList = await readdir(fullDirPath);
