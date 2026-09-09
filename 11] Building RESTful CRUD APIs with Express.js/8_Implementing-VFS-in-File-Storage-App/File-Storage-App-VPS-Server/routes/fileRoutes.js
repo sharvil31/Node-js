@@ -27,7 +27,7 @@ router.post("/:filename", async (req, res) => {
   });
 });
 
-// Download and open Files
+// Read
 router.get("/:id", (req, res) => {
   const { id } = req.params;
   const fileData = filesData.find((file) => file.id === id);
@@ -41,10 +41,13 @@ router.get("/:id", (req, res) => {
 });
 
 // Update
-router.patch("/*", async (req, res) => {
-  const filePath = path.join("/", req.params[0]);
+router.patch("/:id", async (req, res) => {
+  const { id } = req.params;
+  const { newFilename } = req.body;
+  const fileData = filesData.find((file) => file.id === id);
+  fileData.name = newFilename;
   try {
-    await rename(`./storage/${filePath}`, `./storage/${req.body.newFilename}`);
+    await writeFile("./filesDB.json", JSON.stringify(filesData));
     res.json({ message: "Renamed Successfully" });
   } catch (error) {
     res.json({ message: "Rename Failed!" });
@@ -52,11 +55,15 @@ router.patch("/*", async (req, res) => {
 });
 
 // Delete
-router.delete("/*", async (req, res) => {
-  const filePath = path.join("/", req.params[0]);
-  const fullPath = `./storage/${filePath}`;
+router.delete("/:id", async (req, res) => {
+  const { id } = req.params;
+  const fileIndex = filesData.findIndex((file) => file.id === id);
+  const fileData = filesData[fileIndex];
+  const fullPath = `./storage/${id}${fileData.extension}`;
   try {
     await rm(fullPath, { recursive: true });
+    filesData.splice(fileIndex, 1);
+    await writeFile("./filesDB.json", JSON.stringify(filesData));
     res.json({ message: "File Deleted Successfully" });
   } catch (err) {
     res.status(404).json({ message: err.message });
