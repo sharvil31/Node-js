@@ -2,6 +2,7 @@ import express from "express";
 import { createWriteStream } from "fs";
 import { rename, rm, writeFile } from "fs/promises";
 import path from "path";
+import directoriesData from "../directoriesDB.json" with { type: "json" };
 import filesData from "../filesDB.json" with { type: "json" };
 
 const router = express.Router();
@@ -63,7 +64,13 @@ router.delete("/:id", async (req, res) => {
   try {
     await rm(fullPath, { recursive: true });
     filesData.splice(fileIndex, 1);
+    const parentDirData = directoriesData.find(
+      (dir) => dir.id === fileData.parentDirId,
+    );
+    parentDirData.files = parentDirData.files.filter((fileId) => fileId !== id);
+    console.log(parentDirData)
     await writeFile("./filesDB.json", JSON.stringify(filesData));
+    await writeFile("./directoriesDB.json", JSON.stringify(directoriesData));
     res.json({ message: "File Deleted Successfully" });
   } catch (err) {
     res.status(404).json({ message: err.message });

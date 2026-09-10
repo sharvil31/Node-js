@@ -2,11 +2,7 @@
   {
     "id": "4045b0d3-683c-435a-a93a-e9b8df393faf",
     "extension": ".mkv",
-    "name": "6-1 Linear Search.mkv"
-  },
-  {
-    "id": "449a2544-8949-4a39-8495-a66751a1c20e",
-    "extension": ".jpg",
-    "name": "ganesh.jpg"
+    "name": "6-1 Linear Search.mkv",
+    "parentDirId": "e13da112-8660-4e1c-80fd-ea11013a4551"
   }
 ]
