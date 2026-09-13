@@ -1,8 +1,14 @@
 [
   {
-    "id": "4045b0d3-683c-435a-a93a-e9b8df393faf",
-    "extension": ".mkv",
-    "name": "6-1 Linear Search.mkv",
+    "id": "e3abbfc4-b994-492a-9b44-4fb6d53a53d6",
+    "extension": ".jpg",
+    "name": "ganesha.jpg",
+    "parentDirId": "e13da112-8660-4e1c-80fd-ea11013a4551"
+  },
+  {
+    "id": "9f959c2b-d8e3-42f9-b02d-1a39a254b4f6",
+    "extension": ".png",
+    "name": "UDP.png",
     "parentDirId": "e13da112-8660-4e1c-80fd-ea11013a4551"
   }
 ]

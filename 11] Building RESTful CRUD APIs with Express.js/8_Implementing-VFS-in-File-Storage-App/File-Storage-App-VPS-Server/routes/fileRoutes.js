@@ -10,6 +10,8 @@ const router = express.Router();
 // Create
 router.post("/:filename", async (req, res) => {
   const { filename } = req.params;
+  const parentDirId = req.headers.parentdirid || directoriesData[0].id;
+  console.log(parentDirId);
   const fileId = crypto.randomUUID();
   const extension = path.extname(filename);
   const fullFileName = `${fileId}${extension}`;
@@ -20,10 +22,13 @@ router.post("/:filename", async (req, res) => {
       id: fileId,
       extension,
       name: filename,
+      parentDirId
     });
-    console.log(filesData);
+    const parentDirData = directoriesData.find((dirData) => dirData.id === parentDirId);
+    parentDirData.files.push(fileId);
     await writeFile("./filesDB.json", JSON.stringify(filesData));
-    writeStream.end();
+    await writeFile("./directoriesDB.json", JSON.stringify(directoriesData));
+    // writeStream.end();
     res.json({ message: "File uploaded on the server" });
   });
 });
