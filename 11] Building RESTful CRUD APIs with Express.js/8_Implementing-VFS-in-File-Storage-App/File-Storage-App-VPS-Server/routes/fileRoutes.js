@@ -8,9 +8,9 @@ import filesData from "../filesDB.json" with { type: "json" };
 const router = express.Router();
 
 // Create
-router.post("/:filename", async (req, res) => {
-  const { filename } = req.params;
-  const parentDirId = req.headers.parentdirid || directoriesData[0].id;
+router.post("/:parentDirId?", async (req, res) => {
+  const parentDirId = req.params.parentDirId || directoriesData[0].id;
+  const filename = req.headers.filename;
   console.log(parentDirId);
   const fileId = crypto.randomUUID();
   const extension = path.extname(filename);
@@ -22,9 +22,11 @@ router.post("/:filename", async (req, res) => {
       id: fileId,
       extension,
       name: filename,
-      parentDirId
+      parentDirId,
     });
-    const parentDirData = directoriesData.find((dirData) => dirData.id === parentDirId);
+    const parentDirData = directoriesData.find(
+      (dirData) => dirData.id === parentDirId,
+    );
     parentDirData.files.push(fileId);
     await writeFile("./filesDB.json", JSON.stringify(filesData));
     await writeFile("./directoriesDB.json", JSON.stringify(directoriesData));
@@ -73,7 +75,7 @@ router.delete("/:id", async (req, res) => {
       (dir) => dir.id === fileData.parentDirId,
     );
     parentDirData.files = parentDirData.files.filter((fileId) => fileId !== id);
-    console.log(parentDirData)
+    console.log(parentDirData);
     await writeFile("./filesDB.json", JSON.stringify(filesData));
     await writeFile("./directoriesDB.json", JSON.stringify(directoriesData));
     res.json({ message: "File Deleted Successfully" });
