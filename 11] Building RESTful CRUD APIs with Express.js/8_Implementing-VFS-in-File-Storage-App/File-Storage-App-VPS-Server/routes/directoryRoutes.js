@@ -1,5 +1,5 @@
 import express from "express";
-import { mkdir, readdir, stat, writeFile } from "fs/promises";
+import { mkdir, readdir, rm, stat, writeFile } from "fs/promises";
 import path from "path";
 import directoriesData from "../directoriesDB.json" with { type: "json" };
 import filesData from "../filesDB.json" with { type: "json" };
@@ -40,6 +40,55 @@ router.post("/:parentDirId?", async (req, res) => {
     res.json({ message: "Directory Created Successfully" });
   } catch (error) {
     res.status(404).json({ err: error.message });
+  }
+});
+
+router.patch("/:id", async (req, res) => {
+  const { id } = req.params;
+  const { newDirName } = req.body;
+  const dirData = directoriesData.find((dir) => dir.id === id);
+  dirData.name = newDirName;
+  try {
+    await writeFile("./directoriesDB.json", JSON.stringify(directoriesData));
+    res.json({ message: "Directory Renamed Successfully" });
+  } catch (error) {
+    res.status(404).json({ err: error.message });
+  }
+});
+
+router.delete("/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    const dirIndex = directoriesData.findIndex((dir) => dir.id === id);
+    const dirData = directoriesData[dirIndex];
+    // remove directory from directoriesDB
+    directoriesData.splice(dirIndex, 1);
+
+    // Delete actual files from parent storage folder and from filesDB of deleted directory
+    for await (const fileId of dirData.files) {
+      const fileIndex = filesData.findIndex((file) => file.id === fileId);
+      const fileData = filesData[fileIndex];
+      await rm(`./storage/${fileId}${fileData.extension}`);
+      filesData.splice(fileIndex, 1);
+    }
+
+    // remove directories of deleted directory from directoriesDB 
+    for await (const dirId of dirData.directories) {
+      const dirIndex = directoriesData.findIndex((dir) => dir.id === dirId);
+      directoriesData.splice(dirIndex, 1);
+    }
+
+    // delete dirId of deleted directory from its parent.directories 
+    const parentDirData = directoriesData.find((dir) => dir.id === dirData.parentDirId);
+    parentDirData.directories = parentDirData.directories.filter(
+      (dirId) => dirId !== id,
+    );
+    await writeFile("./filesDB.json", JSON.stringify(filesData));
+    await writeFile("./directoriesDB.json", JSON.stringify(directoriesData));
+    res.json({ message: "Directory Deleted!" });
+  } catch (error) {
+    console.log(error);
+    res.json({ err: error.message });
   }
 });
 

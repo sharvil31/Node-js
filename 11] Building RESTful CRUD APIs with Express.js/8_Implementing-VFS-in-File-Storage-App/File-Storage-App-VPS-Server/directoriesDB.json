@@ -1,1 +1,16 @@
-[{"id":"e13da112-8660-4e1c-80fd-ea11013a4551","name":"root","parentDirId":null,"files":["e3abbfc4-b994-492a-9b44-4fb6d53a53d6","6d11f8bb-9202-4926-b5c8-703e50bcc701","04620e16-4f76-4f00-bf97-ce601f311682","0e44007f-26e0-4b70-94b9-7affe38945a9"],"directories":["ac3e2fdb-d3d9-4416-81c2-2bf1b46fbc4c","ca33318a-dde8-44ec-a8e7-4b83c87b593e","a6b66844-f51f-4ec5-9822-b5a7134f5513","d24ada8b-b6de-40d6-b792-4707eb181113"]},{"id":"ac3e2fdb-d3d9-4416-81c2-2bf1b46fbc4c","name":"hii","parentDirId":"e13da112-8660-4e1c-80fd-ea11013a4551","files":[],"directories":[]},{"id":"ca33318a-dde8-44ec-a8e7-4b83c87b593e","name":"test","parentDirId":"e13da112-8660-4e1c-80fd-ea11013a4551","files":["d8122f75-1591-4f0d-971c-9a31817b439c"],"directories":["10e7407e-36f1-4994-80f0-bf02b2e02401","f126c142-39ac-474b-8572-4fc080f19642"]},{"id":"a6b66844-f51f-4ec5-9822-b5a7134f5513","name":"abc","parentDirId":"e13da112-8660-4e1c-80fd-ea11013a4551","files":[],"directories":[]},{"id":"d24ada8b-b6de-40d6-b792-4707eb181113","name":"abc","parentDirId":"e13da112-8660-4e1c-80fd-ea11013a4551","files":[],"directories":[]},{"id":"10e7407e-36f1-4994-80f0-bf02b2e02401","name":"abc","parentDirId":"ca33318a-dde8-44ec-a8e7-4b83c87b593e","files":[],"directories":[]},{"id":"f126c142-39ac-474b-8572-4fc080f19642","name":"xyz","parentDirId":"ca33318a-dde8-44ec-a8e7-4b83c87b593e","files":[],"directories":[]}]
+[
+  {
+    "id": "e13da112-8660-4e1c-80fd-ea11013a4551",
+    "name": "root",
+    "parentDirId": null,
+    "files": ["00b134b6-bee6-4111-8363-d16174627b98"],
+    "directories": ["c1c63c0e-0462-4a27-aa25-2b00d4d78cd1"]
+  },
+  {
+    "id": "c1c63c0e-0462-4a27-aa25-2b00d4d78cd1",
+    "name": "fff",
+    "parentDirId": "e13da112-8660-4e1c-80fd-ea11013a4551",
+    "files": [],
+    "directories": []
+  }
+]
