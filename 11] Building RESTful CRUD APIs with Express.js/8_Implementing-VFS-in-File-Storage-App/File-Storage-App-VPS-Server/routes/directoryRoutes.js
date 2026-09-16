@@ -1,6 +1,5 @@
 import express from "express";
-import { mkdir, readdir, rm, stat, writeFile } from "fs/promises";
-import path from "path";
+import { rm, writeFile } from "fs/promises";
 import directoriesData from "../directoriesDB.json" with { type: "json" };
 import filesData from "../filesDB.json" with { type: "json" };
 
@@ -58,37 +57,82 @@ router.patch("/:id", async (req, res) => {
 
 router.delete("/:id", async (req, res) => {
   const { id } = req.params;
+
   try {
-    const dirIndex = directoriesData.findIndex((dir) => dir.id === id);
-    const dirData = directoriesData[dirIndex];
-    // remove directory from directoriesDB
-    directoriesData.splice(dirIndex, 1);
+    const dirData = directoriesData.find((dir) => dir.id === id);
 
-    // Delete actual files from parent storage folder and from filesDB of deleted directory
-    for await (const fileId of dirData.files) {
-      const fileIndex = filesData.findIndex((file) => file.id === fileId);
-      const fileData = filesData[fileIndex];
-      await rm(`./storage/${fileId}${fileData.extension}`);
-      filesData.splice(fileIndex, 1);
+    if (!dirData) {
+      return res.status(404).json({
+        message: "Directory not found",
+      });
     }
 
-    // remove directories of deleted directory from directoriesDB 
-    for await (const dirId of dirData.directories) {
-      const dirIndex = directoriesData.findIndex((dir) => dir.id === dirId);
-      directoriesData.splice(dirIndex, 1);
+    // Recursively delete a directory and everything inside it
+    async function deleteDirectory(directoryId) {
+      const directory = directoriesData.find((dir) => dir.id === directoryId);
+      if (!directory) return;
+
+      // 1. Delete all files inside this directory
+      for (const fileId of directory.files) {
+        const fileIndex = filesData.findIndex((file) => file.id === fileId);
+
+        if (fileIndex === -1) continue;
+
+        const fileData = filesData[fileIndex];
+
+        // Delete actual file from storage
+        await rm(`./storage/${fileId}${fileData.extension}`);
+
+        // Delete file from filesDB
+        filesData.splice(fileIndex, 1);
+      }
+
+      // 2. Recursively delete all child directories
+      for (const childDirId of directory.directories) {
+        await deleteDirectory(childDirId);
+      }
+
+      // 3. Delete this directory from directoriesDB
+      const dirIndex = directoriesData.findIndex(
+        (dir) => dir.id === directoryId,
+      );
+
+      if (dirIndex !== -1) {
+        directoriesData.splice(dirIndex, 1);
+      }
     }
 
-    // delete dirId of deleted directory from its parent.directories 
-    const parentDirData = directoriesData.find((dir) => dir.id === dirData.parentDirId);
-    parentDirData.directories = parentDirData.directories.filter(
-      (dirId) => dirId !== id,
+    // Delete selected directory recursively
+    await deleteDirectory(id);
+
+    // 4. Remove selected directory from its parent's directories array
+    const parentDir = directoriesData.find(
+      (dir) => dir.id === dirData.parentDirId,
     );
-    await writeFile("./filesDB.json", JSON.stringify(filesData));
-    await writeFile("./directoriesDB.json", JSON.stringify(directoriesData));
-    res.json({ message: "Directory Deleted!" });
+
+    if (parentDir) {
+      parentDir.directories = parentDir.directories.filter(
+        (dirId) => dirId !== id,
+      );
+    }
+
+    // 5. Save both databases
+    await writeFile("./filesDB.json", JSON.stringify(filesData, null, 2));
+    await writeFile(
+      "./directoriesDB.json",
+      JSON.stringify(directoriesData, null, 2),
+    );
+
+    res.json({
+      message: "Directory Deleted Successfully",
+    });
   } catch (error) {
     console.log(error);
-    res.json({ err: error.message });
+
+    res.status(500).json({
+      message: "Directory Deletion Failed",
+      error: error.message,
+    });
   }
 });
 

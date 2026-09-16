@@ -1,6 +1,6 @@
 import express from "express";
 import { createWriteStream } from "fs";
-import { rename, rm, writeFile } from "fs/promises";
+import { rm, writeFile } from "fs/promises";
 import path from "path";
 import directoriesData from "../directoriesDB.json" with { type: "json" };
 import filesData from "../filesDB.json" with { type: "json" };
