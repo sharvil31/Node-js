@@ -8,9 +8,9 @@ import filesData from "../filesDB.json" with { type: "json" };
 const router = express.Router();
 
 // Create
-router.post("/:parentDirId?", async (req, res) => {
+router.post("/:parentDirId?", async (req, res, next) => {
   const parentDirId = req.params.parentDirId || directoriesData[0].id;
-  const filename = req.headers.filename;
+  const filename = req.headers.filename || "untitled";
   console.log(parentDirId);
   const fileId = crypto.randomUUID();
   const extension = path.extname(filename);
@@ -28,10 +28,13 @@ router.post("/:parentDirId?", async (req, res) => {
       (dirData) => dirData.id === parentDirId,
     );
     parentDirData.files.push(fileId);
-    await writeFile("./filesDB.json", JSON.stringify(filesData));
-    await writeFile("./directoriesDB.json", JSON.stringify(directoriesData));
-    // writeStream.end();
-    res.json({ message: "File uploaded on the server" });
+    try {
+      await writeFile("./filesDB.json", JSON.stringify(filesData));
+      await writeFile("./directoriesDB.json", JSON.stringify(directoriesData));
+      return res.status(201).json({ message: "File uploaded" });
+    } catch (error) {
+      next(error);
+    }
   });
 });
 
@@ -39,33 +42,47 @@ router.post("/:parentDirId?", async (req, res) => {
 router.get("/:id", (req, res) => {
   const { id } = req.params;
   const fileData = filesData.find((file) => file.id === id);
-  console.log(fileData);
+
+  if (!fileData) return res.status(404).json({ message: "File Not Found!" });
+
   if (req.query.action === "download") {
     res.set("Content-Disposition", `attachment; filename=${fileData.name}`);
   }
-  res.sendFile(`${process.cwd()}/storage/${id}${fileData.extension}`, (err) => {
-    if (!res.headersSent) res.json({ error: "File Not Found!" });
-  });
+
+  return res.sendFile(
+    `${process.cwd()}/storage/${id}${fileData.extension}`,
+    (err) => {
+      if (!res.headersSent && err) {
+        return res.status(404).json({ error: "File Not Found!" });
+      }
+    },
+  );
 });
 
 // Update
-router.patch("/:id", async (req, res) => {
+router.patch("/:id", async (req, res, next) => {
   const { id } = req.params;
   const { newFilename } = req.body;
   const fileData = filesData.find((file) => file.id === id);
   fileData.name = newFilename;
   try {
     await writeFile("./filesDB.json", JSON.stringify(filesData));
-    res.json({ message: "Renamed Successfully" });
+    return res.status(200).json({ message: "Renamed Successfully" });
   } catch (error) {
-    res.json({ message: "Rename Failed!" });
+    // res.json({ message: "Rename Failed!" });
+    error.status = 500;
+    next(error); // calls global error middleware in app.js
   }
 });
 
 // Delete
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", async (req, res, next) => {
   const { id } = req.params;
   const fileIndex = filesData.findIndex((file) => file.id === id);
+
+  if (fileIndex === -1)
+    return res.status(404).json({ message: "File Not Found!" });
+
   const fileData = filesData[fileIndex];
   const fullPath = `./storage/${id}${fileData.extension}`;
   try {
@@ -75,12 +92,11 @@ router.delete("/:id", async (req, res) => {
       (dir) => dir.id === fileData.parentDirId,
     );
     parentDirData.files = parentDirData.files.filter((fileId) => fileId !== id);
-    console.log(parentDirData);
     await writeFile("./filesDB.json", JSON.stringify(filesData));
     await writeFile("./directoriesDB.json", JSON.stringify(directoriesData));
-    res.json({ message: "File Deleted Successfully" });
+    return res.status(200).json({ message: "File Deleted Successfully" });
   } catch (err) {
-    res.status(404).json({ message: err.message });
+    next(err);
   }
 });
 

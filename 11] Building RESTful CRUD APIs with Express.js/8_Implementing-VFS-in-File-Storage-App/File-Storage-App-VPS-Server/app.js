@@ -11,6 +11,11 @@ app.use(cors());
 app.use("/directory", directoryRoutes);
 app.use("/file", fileRoutes);
 
+// global error middleware
+app.use((err, req, res, next) => {
+  res.status(err.status || 500).json({message: "Something went wrong!"})
+})
+
 app.listen(4000, () => {
   console.log(`Server Started`);
 });
