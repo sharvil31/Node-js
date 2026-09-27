@@ -1,6 +1,7 @@
 import express from "express";
 import multer from "multer";
 import path from "node:path";
+import cors from "cors";
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -19,6 +20,8 @@ const upload = multer({ storage });
 const app = express();
 const PORT = 4000;
 
+app.use(cors());
+
 // Handling Multiple Files
 app.post(
   "/upload",
@@ -27,9 +30,10 @@ app.post(
     { name: "bg", maxCount: 5 },
   ]),
   (req, res) => {
-    console.log(req.body);
-    console.log(req.files);
-    res.json(req.files);
+    // console.log(req.body);
+    // console.log(req.files);
+    console.log("Upload Completed");
+    res.json({ files: req.files, body: req.body });
   },
 );
 
