@@ -54,6 +54,7 @@ router.post("/login", (req, res, next) => {
 
   res.cookie("uid", user.id, {
     httpOnly: true,
+    maxAge: 60 * 1000 * 60 * 24 * 7 // 1 week
   });
   res.json({ message: "Logged in" });
 });

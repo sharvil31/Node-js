@@ -47,6 +47,11 @@ function DirectoryView() {
     });
     const data = await response.json();
 
+    if (response.status === 401) {
+      navigate("/login");
+      return;
+    }
+
     // Set directory name
     if (data.name) {
       setDirectoryName(dirId ? data.name : "My Drive");
