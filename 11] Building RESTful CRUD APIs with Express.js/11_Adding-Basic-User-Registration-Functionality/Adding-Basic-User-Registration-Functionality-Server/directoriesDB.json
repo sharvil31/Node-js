@@ -1,3 +1,17 @@
 [
-
+  {
+    "id": "47f24c0c-59d0-4fbc-80dc-2c0cab3a7ef6",
+    "name": "root-anurag@gmail.com",
+    "userId": "c9174f25-c5d0-48df-bf3b-736f3f539f78",
+    "parentDirId": null,
+    "files": [],
+    "directories": ["f2776cba-b812-46bf-8aee-bb4bc3fb34c1"]
+  },
+  {
+    "id": "f2776cba-b812-46bf-8aee-bb4bc3fb34c1",
+    "name": "New Folder",
+    "parentDirId": "47f24c0c-59d0-4fbc-80dc-2c0cab3a7ef6",
+    "files": [],
+    "directories": []
+  }
 ]

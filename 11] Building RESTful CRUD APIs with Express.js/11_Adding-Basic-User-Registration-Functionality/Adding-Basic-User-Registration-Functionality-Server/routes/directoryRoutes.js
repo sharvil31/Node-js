@@ -7,7 +7,7 @@ const router = express.Router();
 
 // Directory Read
 router.get("/:id?", async (req, res) => {
-  const id = req.params.id || directoriesData[0].id;
+  const id = req.params.id || directoriesData[0]?.id;
   const dirData = directoriesData.find((directory) => directory.id === id);
   if (!dirData) {
     return res.status(404).json({ message: "Directory Not Found!" });
@@ -23,7 +23,7 @@ router.get("/:id?", async (req, res) => {
 
 // Directory Create
 router.post("/:parentDirId?", async (req, res, next) => {
-  const parentDirId = req.params.parentDirId || directoriesData[0].id;
+  const parentDirId = req.params.parentDirId || directoriesData[0]?.id;
   const dirname = req.headers.dirname || "New Folder";
   const id = crypto.randomUUID();
   const parentDir = directoriesData.find((dir) => dir.id === parentDirId);

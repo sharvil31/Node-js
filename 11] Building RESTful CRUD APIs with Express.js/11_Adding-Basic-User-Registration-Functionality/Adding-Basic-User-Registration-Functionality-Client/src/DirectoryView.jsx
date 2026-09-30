@@ -42,7 +42,9 @@ function DirectoryView() {
    * Fetch directory contents
    */
   async function getDirectoryItems() {
-    const response = await fetch(`${BASE_URL}/directory/${dirId || ""}`);
+    const response = await fetch(`${BASE_URL}/directory/${dirId || ""}`, {
+      credentials: "include",
+    });
     const data = await response.json();
 
     // Set directory name
@@ -172,8 +174,8 @@ function DirectoryView() {
     // Mark it as isUploading: true
     setFilesList((prev) =>
       prev.map((f) =>
-        f.id === currentItem.id ? { ...f, isUploading: true } : f
-      )
+        f.id === currentItem.id ? { ...f, isUploading: true } : f,
+      ),
     );
 
     // Start upload
