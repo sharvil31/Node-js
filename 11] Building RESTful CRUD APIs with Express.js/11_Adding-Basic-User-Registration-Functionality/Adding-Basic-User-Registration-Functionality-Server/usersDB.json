@@ -1,1 +1,16 @@
-[{"id":"036a3b36-8a97-4477-a0a6-50a5c21b7822","name":"Sharvil Amburle","email":"sharvil@gmail.com","password":"abcd","rootDirId":"85106abf-0cc0-4308-85b6-393b61b0db2b"}]
+[
+  {
+    "id": "036a3b36-8a97-4477-a0a6-50a5c21b7822",
+    "name": "Sharvil Amburle",
+    "email": "sharvil@gmail.com",
+    "password": "abcd",
+    "rootDirId": "85106abf-0cc0-4308-85b6-393b61b0db2b"
+  },
+  {
+    "id": "39f66c0a-a238-4ce1-916b-a5d30aab6573",
+    "name": "Sahil Vishwakarma",
+    "email": "sahil@gmail.com",
+    "password": "abcd",
+    "rootDirId": "edc33044-3638-4003-bda7-fdd6d1a48d26"
+  }
+]

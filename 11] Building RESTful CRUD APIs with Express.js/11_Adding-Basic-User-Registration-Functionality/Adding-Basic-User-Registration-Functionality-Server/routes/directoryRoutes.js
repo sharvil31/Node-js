@@ -8,8 +8,10 @@ const router = express.Router();
 
 // Directory Read
 router.get("/:id?", async (req, res) => {
-  
-  const id = req.params.id || directoriesData[0]?.id;
+  // const { uid } = req.cookies;
+  // const user = usersData.find((user) => user.id === uid); // same thing we doing on auth.js middleware. dont need to repeat here.
+  const user = req.user; // set from auth.js on req to avoid code redunduncy.
+  const id = req.params.id || user.rootDirId;
   const dirData = directoriesData.find((directory) => directory.id === id);
   if (!dirData) {
     return res.status(404).json({ message: "Directory Not Found!" });
@@ -25,7 +27,8 @@ router.get("/:id?", async (req, res) => {
 
 // Directory Create
 router.post("/:parentDirId?", async (req, res, next) => {
-  const parentDirId = req.params.parentDirId || directoriesData[0]?.id;
+  const user = req.user; // set from auth.js on req to avoid code redunduncy.
+  const parentDirId = req.params.parentDirId || user.rootDirId;
   const dirname = req.headers.dirname || "New Folder";
   const id = crypto.randomUUID();
   const parentDir = directoriesData.find((dir) => dir.id === parentDirId);
@@ -39,6 +42,8 @@ router.post("/:parentDirId?", async (req, res, next) => {
     id,
     name: dirname,
     parentDirId,
+    // userId: uid, // dont need to destructure user id from cookies. user is set from auth.js middleware.
+    userId: user.id,
     files: [],
     directories: [],
   });
