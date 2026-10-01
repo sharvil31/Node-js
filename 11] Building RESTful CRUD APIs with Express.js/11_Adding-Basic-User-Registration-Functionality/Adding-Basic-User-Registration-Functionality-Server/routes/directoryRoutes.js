@@ -6,73 +6,101 @@ import usersData from "../usersDB.json" with { type: "json" };
 
 const router = express.Router();
 
-// Directory Read
+// Read
 router.get("/:id?", async (req, res) => {
-  // const { uid } = req.cookies;
-  // const user = usersData.find((user) => user.id === uid); // same thing we doing on auth.js middleware. dont need to repeat here.
-  const user = req.user; // set from auth.js on req to avoid code redunduncy.
+  const user = req.user;
   const id = req.params.id || user.rootDirId;
-  const dirData = directoriesData.find((directory) => directory.id === id);
-  if (!dirData) {
-    return res.status(404).json({ message: "Directory Not Found!" });
+
+  // Find the directory and verify ownership
+  const directoryData = directoriesData.find(
+    (directory) => directory.id === id && directory.userId === user.id,
+  );
+  if (!directoryData) {
+    return res
+      .status(404)
+      .json({ error: "Directory not found or you do not have access to it!" });
   }
-  const files = dirData.files.map((fileId) =>
+
+  const files = directoryData.files.map((fileId) =>
     filesData.find((file) => file.id === fileId),
   );
-  const directories = dirData.directories
+  const directories = directoryData.directories
     .map((dirId) => directoriesData.find((dir) => dir.id === dirId))
     .map(({ id, name }) => ({ id, name }));
-  return res.status(200).json({ ...dirData, files, directories });
+
+  return res.status(200).json({ ...directoryData, files, directories });
 });
 
-// Directory Create
 router.post("/:parentDirId?", async (req, res, next) => {
-  const user = req.user; // set from auth.js on req to avoid code redunduncy.
+  const user = req.user;
   const parentDirId = req.params.parentDirId || user.rootDirId;
   const dirname = req.headers.dirname || "New Folder";
   const id = crypto.randomUUID();
   const parentDir = directoriesData.find((dir) => dir.id === parentDirId);
-  if (!parentDir) {
+  if (!parentDir)
     return res
       .status(404)
-      .json({ message: "Parent directory does not exist!" });
-  }
+      .json({ message: "Parent Directory Does not exist!" });
   parentDir.directories.push(id);
   directoriesData.push({
     id,
     name: dirname,
     parentDirId,
-    // userId: uid, // dont need to destructure user id from cookies. user is set from auth.js middleware.
-    userId: user.id,
     files: [],
+    userId: user.id,
     directories: [],
   });
   try {
     await writeFile("./directoriesDB.json", JSON.stringify(directoriesData));
-    return res.status(200).json({ message: "Directory Created Successfully" });
-  } catch (error) {
-    next(error);
+    return res.status(200).json({ message: "Directory Created!" });
+  } catch (err) {
+    next(err);
   }
 });
 
 router.patch("/:id", async (req, res, next) => {
+  const user = req.user;
   const { id } = req.params;
   const { newDirName } = req.body;
+
   const dirData = directoriesData.find((dir) => dir.id === id);
-  if (!dirData) {
-    return res.status(404).json({ message: "Directory Not Found!" });
+  if (!dirData)
+    return res.status(404).json({ message: "Directory not found!" });
+
+  // Check if the directory belongs to the user
+  if (dirData.userId !== user.id) {
+    return res
+      .status(403)
+      .json({ message: "You are not authorized to rename this directory!" });
   }
+
   dirData.name = newDirName;
   try {
     await writeFile("./directoriesDB.json", JSON.stringify(directoriesData));
-    return res.status(200).json({ message: "Directory Renamed Successfully" });
-  } catch (error) {
-    next(error);
+    res.status(200).json({ message: "Directory Renamed!" });
+  } catch (err) {
+    next(err);
   }
 });
 
 router.delete("/:id", async (req, res, next) => {
+  const user = req.user;
   const { id } = req.params;
+
+  const dirIndex = directoriesData.findIndex(
+    (directory) => directory.id === id,
+  );
+  if (dirIndex === -1)
+    return res.status(404).json({ message: "Directory not found!" });
+
+  const directoryData = directoriesData[dirIndex];
+
+  // Check if the directory belongs to the user
+  if (directoryData.userId !== user.id) {
+    return res
+      .status(403)
+      .json({ message: "You are not authorized to delete this directory!" });
+  }
 
   try {
     const dirData = directoriesData.find((dir) => dir.id === id);
@@ -85,6 +113,17 @@ router.delete("/:id", async (req, res, next) => {
 
     // Recursively delete a directory and everything inside it
     async function deleteDirectory(directoryId) {
+      if (dirIndex === -1)
+        return res.status(404).json({ message: "Directory not found!" });
+
+      const directoryData = directoriesData[dirIndex];
+
+      // Check if the directory belongs to the user
+      if (directoryData.userId !== user.id) {
+        return res.status(403).json({
+          message: "You are not authorized to delete this directory!",
+        });
+      }
       const directory = directoriesData.find((dir) => dir.id === directoryId);
       if (!directory) return;
 
