@@ -2,9 +2,14 @@ import express from "express";
 import { rm, writeFile } from "fs/promises";
 import directoriesData from "../directoriesDB.json" with { type: "json" };
 import filesData from "../filesDB.json" with { type: "json" };
-import usersData from "../usersDB.json" with { type: "json" };
+import validateIdMiddleware from "../middlewares/validateIdMiddleware.js";
 
 const router = express.Router();
+
+/// Runs first before any middleware with ":parentDirId" param
+router.param("parentDirId", validateIdMiddleware);
+/// Runs first before any middleware with ":id" param
+router.param("id", validateIdMiddleware);
 
 // Read
 router.get("/:id?", async (req, res) => {
