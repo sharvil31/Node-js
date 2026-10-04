@@ -4,13 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
-    <script src="script.js" type="module"></script>
+    <!-- <script src="script.js" type="module"></script> -->
 </head>
 <body>
     <h1>User Form</h1>
     <form action="/user" method="post" enctype="application/x-www-form-urlencoded">
+        <!-- <input type="name" name="name[firstname]" value="Anurag"><br> requires extended: true from backend -->
+        <!-- <input type="name" name="name[lastname]" value="Singh"><br> requires extended: true from backend -->
         <input type="name" name="name" value="Anurag Singh"><br>
         <input type="email" name="email" value="anurag@gmail.com"><br>
+        <!-- <input type="name" name="user[]" value="Sharvil"><br> requires extended: true from backend -->
+        <!-- <input type="name" name="user[]" value="Sahil"><br> requires extended: true from backend -->
         <input type="file" name="profilePic">
         <button>Submit</button>
     </form>
