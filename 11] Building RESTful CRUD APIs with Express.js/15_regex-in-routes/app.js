@@ -7,13 +7,18 @@ const app = express();
 //   res.json({ double: req.params[0] * 2 });
 // });
 
-app.get("/:id([0-9])", (req, res) => {
-  res.json({ message: "Hello Directory" });
-});
+// app.get("/:id([0-9])", (req, res) => {
+//   res.json({ message: "Hello Directory" });
+// });
 
 // app.get("/directory|folder", (req, res) => {
 //   res.json({ message: "Hello Directory" });
 // });
+
+// Using Arrays to Define Multiple Routes
+app.get(["/directory", "/folder", "/test", /\d/], (req, res) => {
+  res.json({ message: "Hello Directory" });
+});
 
 // app.get("/folder", (req, res) => {
 //   res.json({ message: "Hello Directory" });
