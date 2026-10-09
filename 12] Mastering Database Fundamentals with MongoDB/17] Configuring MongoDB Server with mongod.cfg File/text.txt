@@ -1,0 +1,1 @@
+mongod.cfg filepath = "C:\Program Files\MongoDB\Server\9.0\bin\mongod.exe" --config "C:\Program Files\MongoDB\Server\9.0\bin\mongod.cfg" --service
