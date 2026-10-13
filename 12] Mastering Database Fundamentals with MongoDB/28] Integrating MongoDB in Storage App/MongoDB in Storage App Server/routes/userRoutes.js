@@ -3,14 +3,15 @@ import { writeFile } from "fs/promises";
 import directoriesData from "../directoriesDB.json" with { type: "json" };
 import usersData from "../usersDB.json" with { type: "json" };
 import checkAuth from "../middlewares/authMiddleware.js";
+import { Db } from "mongodb";
 
 const router = express.Router();
 
 router.post("/register", async (req, res, next) => {
   const { name, email, password } = req.body;
+  const db = req.db;
 
-  const foundUser = usersData.find((user) => user.email === email);
-  console.log(foundUser);
+  const foundUser = undefined;
   if (foundUser) {
     return res.status(409).json({
       error: "User already exists",
@@ -19,29 +20,26 @@ router.post("/register", async (req, res, next) => {
     });
   }
 
-  const dirId = crypto.randomUUID();
-  const userId = crypto.randomUUID();
-
-  directoriesData.push({
-    id: dirId,
-    name: `root-${email}`,
-    userId,
-    parentDirId: null,
-    files: [],
-    directories: [],
-  });
-
-  usersData.push({
-    id: userId,
-    name,
-    email,
-    password,
-    rootDirId: dirId,
-  });
-
   try {
-    await writeFile("./directoriesDB.json", JSON.stringify(directoriesData));
-    await writeFile("./usersDB.json", JSON.stringify(usersData));
+    const dirCollection = db.collection("directories");
+    const userRootDir = await dirCollection.insertOne({
+      name: `root-${email}`,
+      parentDirId: null,
+      files: [],
+      directories: [],
+    });
+
+    const rootDirId = userRootDir.insertedId;
+
+    const createdUser = await db.collection("users").insertOne({
+      name,
+      email,
+      password,
+      rootDirId,
+    });
+
+    const userId = createdUser.insertedId;
+    await dirCollection.updateOne({ _id: rootDirId }, { $set: { userId } });
     res.status(201).json({ message: "User Registered" });
   } catch (err) {
     next(err);
