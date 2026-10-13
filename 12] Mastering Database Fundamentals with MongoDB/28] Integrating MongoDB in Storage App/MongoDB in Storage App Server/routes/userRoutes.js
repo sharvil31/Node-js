@@ -20,8 +20,6 @@ router.post("/register", async (req, res, next) => {
     const userRootDir = await dirCollection.insertOne({
       name: `root-${email}`,
       parentDirId: null,
-      files: [],
-      directories: [],
     });
 
     const rootDirId = userRootDir.insertedId;
@@ -47,7 +45,7 @@ router.post("/login", async (req, res) => {
 
   // const user = usersData.find((user) => user.email === email);
   const user = await db.collection("users").findOne({ email, password });
-  console.log(user);
+  // console.log(user);
   if (!user) {
     return res.status(404).json({ error: "Invalid Credentials" });
   }
