@@ -1,17 +1,12 @@
 import express from "express";
-import { writeFile } from "fs/promises";
-import directoriesData from "../directoriesDB.json" with { type: "json" };
-import usersData from "../usersDB.json" with { type: "json" };
 import checkAuth from "../middlewares/authMiddleware.js";
-import { Db } from "mongodb";
 
 const router = express.Router();
 
 router.post("/register", async (req, res, next) => {
   const { name, email, password } = req.body;
   const db = req.db;
-
-  const foundUser = undefined;
+  const foundUser = await db.collection("users").findOne({ email });
   if (foundUser) {
     return res.status(409).json({
       error: "User already exists",
@@ -48,11 +43,16 @@ router.post("/register", async (req, res, next) => {
 
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
-  const user = usersData.find((user) => user.email === email);
-  if (!user || user.password !== password) {
+  const db = req.db;
+
+  // const user = usersData.find((user) => user.email === email);
+  const user = await db.collection("users").findOne({ email, password });
+  console.log(user);
+  if (!user) {
     return res.status(404).json({ error: "Invalid Credentials" });
   }
-  res.cookie("uid", user.id, {
+  const userId = user._id.toString();
+  res.cookie("uid", userId, {
     httpOnly: true,
     maxAge: 60 * 1000 * 60 * 24 * 7,
   });
