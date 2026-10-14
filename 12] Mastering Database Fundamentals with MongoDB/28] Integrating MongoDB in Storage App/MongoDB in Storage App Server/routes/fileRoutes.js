@@ -6,6 +6,7 @@ import crypto from "crypto"; // Ensure you're importing crypto if not already
 import directoriesData from "../directoriesDB.json" with { type: "json" };
 import filesData from "../filesDB.json" with { type: "json" };
 import validateIdMiddleware from "../middlewares/validateIdMiddleware.js";
+import { ObjectId } from "mongodb";
 
 const router = express.Router();
 
@@ -17,49 +18,44 @@ router.param("id", validateIdMiddleware);
 // ================================
 // CREATE
 // ================================
-router.post("/:parentDirId?", (req, res, next) => {
+router.post("/:parentDirId?", async (req, res, next) => {
   const parentDirId = req.params.parentDirId || req.user.rootDirId;
-  const parentDirData = directoriesData.find(
-    (directoryData) => directoryData.id === parentDirId,
+  const db = req.db;
+  const dirCollection = db.collection("directories");
+  const parentDirData = await dirCollection.findOne(
+    { _id: new ObjectId(parentDirId), userId: req.user._id },
+    // (directoryData) => directoryData.id === parentDirId,
   );
 
   // Check if parent directory exists
   if (!parentDirData) {
     return res.status(404).json({ error: "Parent directory not found!" });
   }
-
   // Check if the directory belongs to the user
-  if (parentDirData.userId !== req.user.id) {
-    return res.status(403).json({
-      error: "You do not have permission to upload to this directory.",
-    });
-  }
+  // if (parentDirData.userId !== req.user._id) {
+  //   return res.status(403).json({
+  //     error: "You do not have permission to upload to this directory.",
+  //   });
+  // }
 
   const filename = req.headers.filename || "untitled";
-  const id = crypto.randomUUID();
+  // const id = crypto.randomUUID();
+
   const extension = path.extname(filename);
-  const fullFileName = `${id}${extension}`;
+  const createdFile = await db.collection("files").insertOne({
+    extension,
+    name: filename,
+    parentDirId: parentDirData._id,
+  });
+
+  const fileId = createdFile.insertedId.toString();
+  const fullFileName = `${fileId}${extension}`;
 
   const writeStream = createWriteStream(`./storage/${fullFileName}`);
   req.pipe(writeStream);
 
   req.on("end", async () => {
-    filesData.push({
-      id,
-      extension,
-      name: filename,
-      parentDirId,
-    });
-
-    parentDirData.files.push(id);
-
-    try {
-      await writeFile("./filesDB.json", JSON.stringify(filesData));
-      await writeFile("./directoriesDB.json", JSON.stringify(directoriesData));
-      return res.status(201).json({ message: "File Uploaded" });
-    } catch (err) {
-      next(err);
-    }
+    return res.status(201).json({ message: "File Uploaded" });
   });
 });
 

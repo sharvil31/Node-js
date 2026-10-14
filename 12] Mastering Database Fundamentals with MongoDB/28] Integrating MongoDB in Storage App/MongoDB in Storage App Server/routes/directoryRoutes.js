@@ -21,7 +21,7 @@ router.get("/:id?", async (req, res) => {
 
   const directoryData = await dirCollection.findOne(
     { _id: new ObjectId(id) },
-    { userId: new ObjectId(user.id) },
+    { userId: user._id },
   );
 
   if (!directoryData) {
