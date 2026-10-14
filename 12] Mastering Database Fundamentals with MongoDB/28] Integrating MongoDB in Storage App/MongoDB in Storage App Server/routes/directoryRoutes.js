@@ -16,11 +16,11 @@ router.param("id", validateIdMiddleware);
 router.get("/:id?", async (req, res) => {
   const db = req.db;
   const user = req.user;
-  const id = req.params.id || user.rootDirId.toString();
+  const _id = req.params.id ? new ObjectId(req.params.id) : user.rootDirId;
   const dirCollection = db.collection("directories");
 
   const directoryData = await dirCollection.findOne(
-    { _id: new ObjectId(id) },
+    { _id },
     { userId: user._id },
   );
 
@@ -30,15 +30,16 @@ router.get("/:id?", async (req, res) => {
       .json({ error: "Directory not found or you do not have access to it!" });
   }
 
-  const files = [];
- 
-  const directories = await dirCollection
-    .find({ parentDirId: new ObjectId(id) })
+  const files = await db
+    .collection("files")
+    .find({ parentDirId: directoryData._id })
     .toArray();
+
+  const directories = await dirCollection.find({ parentDirId: _id }).toArray();
 
   return res.status(200).json({
     ...directoryData,
-    files,
+    files: files.map((file) => ({ ...file, id: file._id })),
     directories: directories.map((dir) => ({ ...dir, id: dir._id })),
   });
 });
@@ -46,13 +47,17 @@ router.get("/:id?", async (req, res) => {
 router.post("/:parentDirId?", async (req, res, next) => {
   const user = req.user;
   const db = req.db;
-  const parentDirId = req.params.parentDirId || user.rootDirId.toString();
+  const dirCollection = db.collection("directories");
+
+  const parentDirId = req.params.parentDirId
+    ? new ObjectId(req.params.parentDirId)
+    : user.rootDirId;
   const dirname = req.headers.dirname || "New Folder";
 
   try {
     const parentDir = await db
       .collection("directories")
-      .findOne({ _id: new ObjectId(parentDirId) });
+      .findOne({ _id: parentDirId });
     if (!parentDir)
       return res
         .status(404)
@@ -60,7 +65,7 @@ router.post("/:parentDirId?", async (req, res, next) => {
 
     await dirCollection.insertOne({
       name: dirname,
-      parentDirId: new ObjectId(parentDirId),
+      parentDirId: parentDirId,
       userId: user._id,
     });
     return res.status(200).json({ message: "Directory Created!" });
