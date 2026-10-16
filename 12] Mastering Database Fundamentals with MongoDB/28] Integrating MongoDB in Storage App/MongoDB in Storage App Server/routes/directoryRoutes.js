@@ -99,16 +99,35 @@ router.delete("/:id", async (req, res, next) => {
   const db = req.db;
   const dirCollection = db.collection("directories");
   const filesCollection = db.collection("files");
+  const dirObjId = new ObjectId(id);
 
-  const directories = await dirCollection
-    .find({ parentDirId: new ObjectId(id) })
-    .toArray();
+  async function getDirectoryContents(id) {
+    let directories = await dirCollection
+      .find({ parentDirId: id }, { projection: { name: 1, _id: 1 } })
+      .toArray();
 
-  const files = await filesCollection
-    .find({ parentDirId: new ObjectId(id) })
-    .toArray();
+    let files = await filesCollection
+      .find({ parentDirId: id }, { projection: { name: 1, _id: 1 } })
+      .toArray();
 
-  console.log({ files, directories });
+    // for (const { name, _id } of files) {
+    //   console.log(name);
+    // }
+
+    for (const { name, _id } of directories) {
+      const { files: childFiles, directories: childDirectories } =
+        await getDirectoryContents(_id);
+
+      files = [...files, ...childFiles];
+      directories = [...directories, ...childDirectories];
+    }
+
+    return { files, directories };
+  }
+
+  const data = await getDirectoryContents(dirObjId);
+  console.log(data);
+
   return res.json({ message: "Files deleted successfully" });
   // const dirIndex = directoriesData.findIndex(
   //   (directory) => directory.id === id,
