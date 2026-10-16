@@ -55,9 +55,8 @@ router.post("/:parentDirId?", async (req, res, next) => {
   const dirname = req.headers.dirname || "New Folder";
 
   try {
-    const parentDir = await db
-      .collection("directories")
-      .findOne({ _id: parentDirId });
+    const parentDir = await dirCollection.findOne({ _id: parentDirId });
+
     if (!parentDir)
       return res
         .status(404)
@@ -97,104 +96,117 @@ router.patch("/:id", async (req, res, next) => {
 router.delete("/:id", async (req, res, next) => {
   const user = req.user;
   const { id } = req.params;
+  const db = req.db;
+  const dirCollection = db.collection("directories");
+  const filesCollection = db.collection("files");
 
-  const dirIndex = directoriesData.findIndex(
-    (directory) => directory.id === id,
-  );
-  if (dirIndex === -1)
-    return res.status(404).json({ message: "Directory not found!" });
+  const directories = await dirCollection
+    .find({ parentDirId: new ObjectId(id) })
+    .toArray();
 
-  const directoryData = directoriesData[dirIndex];
+  const files = await filesCollection
+    .find({ parentDirId: new ObjectId(id) })
+    .toArray();
 
-  // Check if the directory belongs to the user
-  if (directoryData.userId !== user.id) {
-    return res
-      .status(403)
-      .json({ message: "You are not authorized to delete this directory!" });
-  }
+  console.log({ files, directories });
+  return res.json({ message: "Files deleted successfully" });
+  // const dirIndex = directoriesData.findIndex(
+  //   (directory) => directory.id === id,
+  // );
+  // if (dirIndex === -1)
+  //   return res.status(404).json({ message: "Directory not found!" });
 
-  try {
-    const dirData = directoriesData.find((dir) => dir.id === id);
+  // const directoryData = directoriesData[dirIndex];
 
-    if (!dirData) {
-      return res.status(404).json({
-        message: "Directory not found",
-      });
-    }
+  // // Check if the directory belongs to the user
+  // if (directoryData.userId !== user.id) {
+  //   return res
+  //     .status(403)
+  //     .json({ message: "You are not authorized to delete this directory!" });
+  // }
 
-    // Recursively delete a directory and everything inside it
-    async function deleteDirectory(directoryId) {
-      if (dirIndex === -1)
-        return res.status(404).json({ message: "Directory not found!" });
+  // try {
+  //   const dirData = directoriesData.find((dir) => dir.id === id);
 
-      const directoryData = directoriesData[dirIndex];
+  //   if (!dirData) {
+  //     return res.status(404).json({
+  //       message: "Directory not found",
+  //     });
+  //   }
 
-      // Check if the directory belongs to the user
-      if (directoryData.userId !== user.id) {
-        return res.status(403).json({
-          message: "You are not authorized to delete this directory!",
-        });
-      }
-      const directory = directoriesData.find((dir) => dir.id === directoryId);
-      if (!directory) return;
+  //   // Recursively delete a directory and everything inside it
+  //   async function deleteDirectory(directoryId) {
+  //     if (dirIndex === -1)
+  //       return res.status(404).json({ message: "Directory not found!" });
 
-      // 1. Delete all files inside this directory
-      for (const fileId of directory.files) {
-        const fileIndex = filesData.findIndex((file) => file.id === fileId);
+  //     const directoryData = directoriesData[dirIndex];
 
-        if (fileIndex === -1) continue;
+  //     // Check if the directory belongs to the user
+  //     if (directoryData.userId !== user.id) {
+  //       return res.status(403).json({
+  //         message: "You are not authorized to delete this directory!",
+  //       });
+  //     }
+  //     const directory = directoriesData.find((dir) => dir.id === directoryId);
+  //     if (!directory) return;
 
-        const fileData = filesData[fileIndex];
+  //     // 1. Delete all files inside this directory
+  //     for (const fileId of directory.files) {
+  //       const fileIndex = filesData.findIndex((file) => file.id === fileId);
 
-        // Delete actual file from storage
-        await rm(`./storage/${fileId}${fileData.extension}`);
+  //       if (fileIndex === -1) continue;
 
-        // Delete file from filesDB
-        filesData.splice(fileIndex, 1);
-      }
+  //       const fileData = filesData[fileIndex];
 
-      // 2. Recursively delete all child directories
-      for (const childDirId of directory.directories) {
-        await deleteDirectory(childDirId);
-      }
+  //       // Delete actual file from storage
+  //       await rm(`./storage/${fileId}${fileData.extension}`);
 
-      // 3. Delete this directory from directoriesDB
-      const dirIndex = directoriesData.findIndex(
-        (dir) => dir.id === directoryId,
-      );
+  //       // Delete file from filesDB
+  //       filesData.splice(fileIndex, 1);
+  //     }
 
-      if (dirIndex !== -1) {
-        directoriesData.splice(dirIndex, 1);
-      }
-    }
+  //     // 2. Recursively delete all child directories
+  //     for (const childDirId of directory.directories) {
+  //       await deleteDirectory(childDirId);
+  //     }
 
-    // Delete selected directory recursively
-    await deleteDirectory(id);
+  //     // 3. Delete this directory from directoriesDB
+  //     const dirIndex = directoriesData.findIndex(
+  //       (dir) => dir.id === directoryId,
+  //     );
 
-    // 4. Remove selected directory from its parent's directories array
-    const parentDir = directoriesData.find(
-      (dir) => dir.id === dirData.parentDirId,
-    );
+  //     if (dirIndex !== -1) {
+  //       directoriesData.splice(dirIndex, 1);
+  //     }
+  //   }
 
-    if (parentDir) {
-      parentDir.directories = parentDir.directories.filter(
-        (dirId) => dirId !== id,
-      );
-    }
+  //   // Delete selected directory recursively
+  //   await deleteDirectory(id);
 
-    // 5. Save both databases
-    await writeFile("./filesDB.json", JSON.stringify(filesData, null, 2));
-    await writeFile(
-      "./directoriesDB.json",
-      JSON.stringify(directoriesData, null, 2),
-    );
+  //   // 4. Remove selected directory from its parent's directories array
+  //   const parentDir = directoriesData.find(
+  //     (dir) => dir.id === dirData.parentDirId,
+  //   );
 
-    return res.status(200).json({
-      message: "Directory Deleted Successfully",
-    });
-  } catch (error) {
-    next(error);
-  }
+  //   if (parentDir) {
+  //     parentDir.directories = parentDir.directories.filter(
+  //       (dirId) => dirId !== id,
+  //     );
+  //   }
+
+  //   // 5. Save both databases
+  //   await writeFile("./filesDB.json", JSON.stringify(filesData, null, 2));
+  //   await writeFile(
+  //     "./directoriesDB.json",
+  //     JSON.stringify(directoriesData, null, 2),
+  //   );
+
+  //   return res.status(200).json({
+  //     message: "Directory Deleted Successfully",
+  //   });
+  // } catch (error) {
+  //   next(error);
+  // }
 });
 
 export default router;
