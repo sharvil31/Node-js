@@ -1,7 +1,5 @@
 import express from "express";
-import { rm, writeFile } from "fs/promises";
-import directoriesData from "../directoriesDB.json" with { type: "json" };
-import filesData from "../filesDB.json" with { type: "json" };
+import { rm } from "fs/promises";
 import validateIdMiddleware from "../middlewares/validateIdMiddleware.js";
 import { ObjectId } from "mongodb";
 
@@ -94,27 +92,39 @@ router.patch("/:id", async (req, res, next) => {
 });
 
 router.delete("/:id", async (req, res, next) => {
-  const user = req.user;
   const { id } = req.params;
   const db = req.db;
   const dirCollection = db.collection("directories");
   const filesCollection = db.collection("files");
   const dirObjId = new ObjectId(id);
 
+  // check if dir exists and belongs to logged in user
+  const directoryData = await dirCollection.findOne(
+    {
+      _id: dirObjId,
+      userId: req.user._id,
+    },
+    { projection: { _id: 1 } },
+  );
+
+  if (!directoryData) {
+    return res.status(404).json({ error: "Directory not found!" });
+  }
+
+  // function to get nested data from directories
   async function getDirectoryContents(id) {
+    // fetch only required directory data from db
     let directories = await dirCollection
-      .find({ parentDirId: id }, { projection: { name: 1, _id: 1 } })
+      .find({ parentDirId: id }, { projection: { _id: 1 } })
       .toArray();
 
+      // fetch only required files data from db
     let files = await filesCollection
-      .find({ parentDirId: id }, { projection: { name: 1, _id: 1 } })
+      .find({ parentDirId: id }, { projection: { _id: 1, extension: 1 } })
       .toArray();
 
-    // for (const { name, _id } of files) {
-    //   console.log(name);
-    // }
-
-    for (const { name, _id } of directories) {
+      // recursively call function and add all nested files and directories to files and directory array
+    for (const { _id } of directories) {
       const { files: childFiles, directories: childDirectories } =
         await getDirectoryContents(_id);
 
@@ -122,11 +132,27 @@ router.delete("/:id", async (req, res, next) => {
       directories = [...directories, ...childDirectories];
     }
 
+    // return all nested files and directories
     return { files, directories };
   }
 
-  const data = await getDirectoryContents(dirObjId);
-  console.log(data);
+  // recursively get all nested files and directories
+  const { files, directories } = await getDirectoryContents(dirObjId);
+
+  // delete all files from stroage folder on server
+  for (const { extension, _id } of files) {
+    await rm(`./storage/${_id.toString()}${extension}`);
+  }
+
+  // delete all files from database
+  await filesCollection.deleteMany({
+    _id: { $in: files.map(({ _id }) => _id) },
+  });
+
+  // delete all files from database
+  await dirCollection.deleteMany({
+    _id: { $in: [...directories.map(({ _id }) => _id), dirObjId] },
+  });
 
   return res.json({ message: "Files deleted successfully" });
   // const dirIndex = directoriesData.findIndex(
