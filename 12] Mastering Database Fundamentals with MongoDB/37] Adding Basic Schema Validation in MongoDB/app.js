@@ -8,21 +8,45 @@ const client = new MongoClient("mongodb://127.0.0.1:27017");
 await client.connect();
 
 const db = client.db();
-const collection = db.collection("users");
+// const collection = db.collection("users");
 
-await db.command({
-  collMod: "users",
+// await db.command({
+//   collMod: "users",
+//   validator: {
+//     name: {
+//       $type: "string",
+//     },
+//     age: {
+//       $type: "int",
+//       $gte: 18,
+//       $lte: 80,
+//     },
+//   },
+//   validationAction: "warn"
+// });
+
+// creating collection with validation
+// await db.command({
+//   create: "users",
+//   validator: {
+//     name: {
+//       $type: "string",
+//     },
+//     age: {
+//       $type: "int",
+//     },
+//   },
+// });
+
+await db.createCollection("users", {
   validator: {
     name: {
       $type: "string",
     },
     age: {
       $type: "int",
-      $gte: 18,
-      $lte: 80,
     },
   },
-  validationAction: "warn"
 });
 
 const collections = await db.listCollections().toArray();
