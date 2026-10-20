@@ -33,7 +33,7 @@ try {
   // global error middleware
   app.use((err, req, res, next) => {
     console.log(err)
-    res.status(err.status || 500).json({ message: "Something went wrong!" });
+    res.status(err.status || 500).json({ error: "Something went wrong!" });
   });
 
   app.listen(4000, () => {

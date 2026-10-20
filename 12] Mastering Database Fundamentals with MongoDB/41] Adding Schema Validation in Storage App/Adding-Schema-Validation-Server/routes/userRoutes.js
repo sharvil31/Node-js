@@ -38,7 +38,18 @@ router.post("/register", async (req, res, next) => {
 
     res.status(201).json({ message: "User Registered" });
   } catch (err) {
-    next(err);
+    // field validation error
+    if (err.code === 121) {
+      res
+        .status(400)
+        .json({
+          error: "Invalid value, Please enter valid details",
+          details: err,
+        });
+    } else {
+      // else run global error middleware
+      next(err);
+    }
   }
 });
 
