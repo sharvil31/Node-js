@@ -1,0 +1,41 @@
+{
+  "t": { "$date": "2026-10-20T13:03:32.285+05:30" },
+  "s": "W",
+  "c": "STORAGE",
+  "id": 20294,
+  "ctx": "conn27",
+  "msg": "Document would fail validation",
+  "attr": {
+    "namespace": "test.users",
+    "document": {
+      "_id": { "$oid": "6ad7194c8a584c0f1885dbc6" },
+      "name": "Raman",
+      "age": "60"
+    },
+    "errInfo": {
+      "failingDocumentId": { "$oid": "6ad7194c8a584c0f1885dbc6" },
+      "details": {
+        "operatorName": "$jsonSchema",
+        "schemaRulesNotSatisfied": [
+          {
+            "operatorName": "properties",
+            "propertiesNotSatisfied": [
+              {
+                "propertyName": "age",
+                "details": [
+                  {
+                    "operatorName": "bsonType",
+                    "specifiedAs": { "bsonType": "int" },
+                    "reason": "type did not match",
+                    "consideredValue": "60",
+                    "consideredType": "string"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }
+}
