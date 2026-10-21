@@ -1,6 +1,7 @@
 import express from "express";
 import checkAuth from "../middlewares/authMiddleware.js";
 import { ObjectId } from "mongodb";
+import { client } from "../config/db.js";
 
 const router = express.Router();
 
@@ -16,36 +17,48 @@ router.post("/register", async (req, res, next) => {
     });
   }
 
+  const session = client.startSession();
   try {
     const dirCollection = db.collection("directories");
     const rootDirId = new ObjectId();
     const userId = new ObjectId();
 
-    await dirCollection.insertOne({
-      _id: rootDirId,
-      name: `root-${email}`,
-      parentDirId: null,
-      userId,
-    });
+    // startTransaction()
+    session.startTransaction();
 
-    await db.collection("users").insertOne({
-      _id: userId,
-      name,
-      email,
-      password,
-      rootDirId,
-    });
+    await dirCollection.insertOne(
+      {
+        _id: rootDirId,
+        name: `root-${email}`,
+        parentDirId: null,
+        userId,
+      },
+      { session },
+    );
+
+    await db.collection("users").insertOne(
+      {
+        _id: userId,
+        name,
+        email,
+        password,
+        rootDirId,
+      },
+      { session },
+    );
+
+    // transaction will not commit if error occurs
+    session.commitTransaction();
 
     res.status(201).json({ message: "User Registered" });
   } catch (err) {
+    session.abortTransaction();
     // field validation error
     if (err.code === 121) {
-      res
-        .status(400)
-        .json({
-          error: "Invalid value, Please enter valid details",
-          details: err,
-        });
+      res.status(400).json({
+        error: "Invalid value, Please enter valid details",
+        details: err,
+      });
     } else {
       // else run global error middleware
       next(err);
