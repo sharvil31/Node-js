@@ -3,8 +3,10 @@ import { ObjectId } from "mongodb";
 export const addTodo = async (req, res) => {
   const todo = req.body;
   try {
-    const result = await req.db.collection("todos").insertOne(todo);
-    res.status(201).json(result);
+    const result = await req.db
+      .collection("todos")
+      .insertOne({ ...todo, completed: todo.completed || false });
+    res.redirect("/todos"); // refresh UI
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: "Failed to create todo" });
@@ -14,7 +16,7 @@ export const addTodo = async (req, res) => {
 export const getAllTodos = async (req, res) => {
   try {
     const todos = await req.db.collection("todos").find().toArray();
-    res.status(200).json(todos);
+    res.render("index", { todos });
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch todos" });
   }
