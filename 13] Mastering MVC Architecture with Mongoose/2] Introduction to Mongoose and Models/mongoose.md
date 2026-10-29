@@ -1,1 +1,0 @@
-Mongoose is a popular ODM (Object Data Modeling) library for MongoDB
