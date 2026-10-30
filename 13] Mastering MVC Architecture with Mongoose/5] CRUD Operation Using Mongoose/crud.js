@@ -1,5 +1,5 @@
 import User from "./userModel.js";
 
-const user = User.findOne({ email: "ankit@gmail.com" }); // return query - its like a cursor of monodb - its a thenable object
+const user = await User.findOneAndDelete({ email: "ramesh@gmail.com" });
 
 console.log(user);
