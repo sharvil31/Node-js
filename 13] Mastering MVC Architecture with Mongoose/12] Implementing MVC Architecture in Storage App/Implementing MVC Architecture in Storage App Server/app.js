@@ -6,6 +6,7 @@ import fileRoutes from "./routes/fileRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import checkAuth from "./middlewares/authMiddleware.js";
 import { connectDB } from "./config/db.js";
+import "./config/mongoose.js";
 
 try {
   const db = await connectDB();
@@ -32,7 +33,7 @@ try {
 
   // global error middleware
   app.use((err, req, res, next) => {
-    console.log(err)
+    console.log(err.errInfo.details.schemaRulesNotSatisfied);
     res.status(err.status || 500).json({ error: "Something went wrong!" });
   });
 
