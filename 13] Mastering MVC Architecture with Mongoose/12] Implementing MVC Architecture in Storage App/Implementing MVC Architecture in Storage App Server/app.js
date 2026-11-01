@@ -33,7 +33,7 @@ try {
 
   // global error middleware
   app.use((err, req, res, next) => {
-    console.log(err.errInfo.details.schemaRulesNotSatisfied);
+    console.log(err);
     res.status(err.status || 500).json({ error: "Something went wrong!" });
   });
 
