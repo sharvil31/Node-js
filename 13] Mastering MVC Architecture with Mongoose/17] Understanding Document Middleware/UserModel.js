@@ -30,6 +30,7 @@ const userSchema = new Schema(
       lowercase: true,
       trim: true,
     },
+    password: String,
     hobbies: [String],
     parentId: {
       type: Schema.Types.ObjectId,
@@ -77,12 +78,20 @@ const userSchema = new Schema(
         return this.findOne({ email });
       },
     },
-  }
+  },
 );
 
-userSchema.pre("find", function () {
-  console.log("Running my query middleware");
-  console.log(this); // hover on this to see middleware type
+userSchema.pre("save", function () {
+  // console.log("Running my document middleware"); // document middleware runs for save, create and insertOne
+  this.password = this.name + this.age;
+  // console.log(this); // hover on this to see middleware type
+  // next()
+});
+
+userSchema.post("save", function (doc) {
+  console.log(`Your account is created and your password is ${doc.password}`);
+  // console.log(doc);
+  // console.log(this);
 });
 
 const User = model("User", userSchema);
