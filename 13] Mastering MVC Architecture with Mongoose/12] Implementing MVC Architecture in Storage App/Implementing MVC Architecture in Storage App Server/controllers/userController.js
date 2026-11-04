@@ -4,14 +4,6 @@ import mongoose, { Types } from "mongoose";
 
 export const register = async (req, res, next) => {
   const { name, email, password } = req.body;
-  const foundUser = await User.findOne({ email }).lean();
-  if (foundUser) {
-    return res.status(409).json({
-      error: "User already exists",
-      message:
-        "A user with this email address already exists. Please try logging in or use a different email.",
-    });
-  }
 
   const session = await mongoose.startSession();
   try {
@@ -55,8 +47,15 @@ export const register = async (req, res, next) => {
         error: "Invalid value, Please enter valid details",
         details: err,
       });
+    } else if (err.code === 11000) {
+      if (err.keyValue.email) {
+        return res.status(409).json({
+          error: "User already exists",
+          message:
+            "A user with this email address already exists. Please try logging in or use a different email.",
+        });
+      }
     } else {
-      // else run global error middleware
       next(err);
     }
   }
