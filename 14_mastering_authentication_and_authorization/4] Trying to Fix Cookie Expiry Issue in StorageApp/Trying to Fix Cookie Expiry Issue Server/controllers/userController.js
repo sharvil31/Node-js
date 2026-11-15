@@ -76,7 +76,7 @@ export const login = async (req, res) => {
     expiry: Math.round(Date.now() / 1000 + 10),
   };
 
-  res.cookie("uid", JSON.stringify(cookiePayload), {
+  res.cookie("uid", Buffer.from(JSON.stringify(cookiePayload)).toString("base64url"), {
     httpOnly: true,
     // maxAge: 10 * 1000,
     maxAge: 60 * 1000 * 60 * 24 * 7,
