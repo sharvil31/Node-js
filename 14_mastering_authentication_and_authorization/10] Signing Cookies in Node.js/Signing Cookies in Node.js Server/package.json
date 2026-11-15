@@ -1,5 +1,5 @@
 {
-  "name": "01_intro-to-express",
+  "name": "Signing Cookies in Node.js Server",
   "version": "1.0.0",
   "main": "app.js",
   "type": "module",

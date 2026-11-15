@@ -1,6 +1,9 @@
 import User from "../models/userModel.js";
 import Directory from "../models/directoryModel.js";
 import mongoose, { Types } from "mongoose";
+import crypto from "node:crypto";
+
+export const mySecretKey = "Sharvil-storageApp-3173$#";
 
 export const register = async (req, res, next) => {
   const { name, email, password } = req.body;
@@ -71,12 +74,21 @@ export const login = async (req, res) => {
     return res.status(404).json({ error: "Invalid Credentials" });
   }
 
-  const cookiePayload = {
+  const cookiePayload = JSON.stringify({
     id: user._id.toString(),
-    expiry: Math.round(Date.now() / 1000 + 10),
-  };
+    expiry: Math.round(Date.now() / 1000 + 100000),
+  });
 
-  res.cookie("uid", Buffer.from(JSON.stringify(cookiePayload)).toString("base64url"), {
+  const signature = crypto
+    .createHash("sha256")
+    .update(mySecretKey)
+    .update(cookiePayload)
+    .update(mySecretKey)
+    .digest("base64url");
+
+  const signedCookiepayload = `${Buffer.from(cookiePayload).toString("base64url")}.${signature}`;
+
+  res.cookie("token", signedCookiepayload, {
     httpOnly: true,
     // maxAge: 10 * 1000,
     maxAge: 60 * 1000 * 60 * 24 * 7,
@@ -92,6 +104,6 @@ export const getCurrentUser = (req, res) => {
 };
 
 export const logout = (req, res) => {
-  res.clearCookie("uid");
+  res.clearCookie("token");
   res.status(204).end();
 };
