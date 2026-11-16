@@ -7,8 +7,14 @@ export const register = async (req, res, next) => {
   const { name, email, password } = req.body;
 
   const session = await mongoose.startSession();
+
+  // hashing password
+  const hashedPassword = crypto
+    .createHash("sha256")
+    .update(password)
+    .digest("hex");
+
   try {
-    // const dirCollection = db.collection("directories");
     const rootDirId = new Types.ObjectId();
     const userId = new Types.ObjectId();
 
@@ -30,7 +36,7 @@ export const register = async (req, res, next) => {
         _id: userId,
         name,
         email,
-        password,
+        password: hashedPassword,
         rootDirId,
       },
       { session },
@@ -65,10 +71,18 @@ export const register = async (req, res, next) => {
 export const login = async (req, res) => {
   const { email, password } = req.body;
 
-  // const user = usersData.find((user) => user.email === email);
-  const user = await User.findOne({ email, password }).lean();
-  // console.log(user);
+  const user = await User.findOne({ email }).lean();
+
   if (!user) {
+    return res.status(404).json({ error: "Invalid Credentials" });
+  }
+
+  const enteredPasswordHash = crypto
+    .createHash("sha256")
+    .update(password)
+    .digest("hex");
+
+  if (user.password !== enteredPasswordHash) {
     return res.status(404).json({ error: "Invalid Credentials" });
   }
 
