@@ -1,5 +1,5 @@
 {
-  "name": "Using pbkdf2 to Hash Passwords Server",
+  "name": "Using-pbkdf2-to-Hash-Passwords-Server",
   "version": "1.0.0",
   "main": "app.js",
   "type": "module",
