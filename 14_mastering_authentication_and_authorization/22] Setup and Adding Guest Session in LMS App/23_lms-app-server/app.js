@@ -5,6 +5,7 @@ import courseRoutes from "./routes/courses.js";
 import cartRoutes from "./routes/cart.js";
 import authRoutes from "./routes/auth.js";
 import { seedDatabase } from "./seed.js";
+import cookieParser from "cookie-parser";
 
 await connectDB();
 await seedDatabase();
@@ -17,8 +18,10 @@ app.use(
   cors({
     origin: "http://localhost:5173",
     credentials: true,
-  })
+  }),
 );
+
+app.use(cookieParser("sharvil31-lms-123$#"));
 app.use(express.json());
 
 // Routes

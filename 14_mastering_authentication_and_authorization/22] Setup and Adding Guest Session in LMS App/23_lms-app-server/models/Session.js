@@ -3,11 +3,13 @@ import mongoose from "mongoose";
 const sessionSchema = new mongoose.Schema({
   data: {
     type: mongoose.Schema.Types.Mixed,
-    default: {},
+    default: {
+      cart: []
+    },
   },
   expires: {
     type: Number,
-    default: Date.now() / 1000 + 60 * 60,
+    default: Math.round(Date.now() / 1000 + 60 * 60),
   },
 });
 
