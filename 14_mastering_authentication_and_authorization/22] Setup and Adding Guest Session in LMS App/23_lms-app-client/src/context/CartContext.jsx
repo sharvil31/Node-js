@@ -1,9 +1,23 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
+import { addToCartApi, getAllCartItemsApi } from "../api/cartApi";
 
 const CartContext = createContext(undefined);
 
 export function CartProvider({ children }) {
   const [cart, setCart] = useState([]);
+
+  const fetchAllCartItems = async () => {
+    try {
+      const res = await getAllCartItemsApi();
+      setCart(res);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+    fetchAllCartItems();
+  }, []);
 
   const addToCart = async (course) => {
     setCart((prevCart) => {
@@ -13,7 +27,7 @@ export function CartProvider({ children }) {
         return prevCart.map((item) =>
           item.name === course.name
             ? { ...item, quantity: (item.quantity || 1) + 1 }
-            : item
+            : item,
         );
       }
 
@@ -27,7 +41,7 @@ export function CartProvider({ children }) {
 
   const cartCount = cart.reduce(
     (total, item) => total + (item.quantity || 1),
-    0
+    0,
   );
 
   return (
