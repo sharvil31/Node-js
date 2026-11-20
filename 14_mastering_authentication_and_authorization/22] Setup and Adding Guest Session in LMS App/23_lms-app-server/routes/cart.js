@@ -10,23 +10,32 @@ router.get("/", async (req, res) => {
 
 // Add to cart
 router.post("/", async (req, res) => {
-  const session = await Session.findById(req.signedCookies.sid);
+  const sessionId = req.signedCookies.sid;
+  const courseId = req.body.courseId;
+  console.log(req.signedCookies.sid);
+  console.log(req.body.courseId);
+  const result = await Session.updateOne(
+    {
+      _id: sessionId,
+      "data.cart.courseId": courseId,
+    },
+    { $inc: { "data.cart.$.quantity": 1 } },
+  );
+
+  if (result.matchedCount === 0) {
+    await Session.updateOne(
+      { _id: sessionId },
+      { $push: { "data.cart": { courseId, quantity: 1 } } },
+    );
+  }
   // session.data.cart.push({
   //   courseId: req.body.courseId,
   //   quantity: 1,
   // });
 
-  session.set("data.cart", [
-    ...session.data.cart,
-    {
-      courseId: req.body.courseId,
-      quantity: 1,
-    },
-  ]);
-
   // session.markModified("data"); // mongoose doesn't track nested document if we update using push. We need to explicitely tell with markModified.
-  await session.save();
-  console.log(session);
+  // await result.save();
+  console.log(result);
   res.status(201).json({ message: "Course added to the cart" });
 });
 
