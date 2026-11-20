@@ -1,11 +1,36 @@
 import express from "express";
 import Session from "../models/Session.js";
+import Course from "../models/Course.js";
 
 const router = express.Router();
 
 // GET cart
 router.get("/", async (req, res) => {
-  //Add your code here
+  const sessionId = req.signedCookies.sid;
+  // find guest user session
+  const session = await Session.findById(sessionId);
+  // get added courses Ids
+  const courseIds = session.data.cart.map(({ courseId }) => courseId);
+  // find courses in courses collection
+  const courses = await Course.find({ _id: { $in: courseIds } });
+
+  // create response with required fields for frontend
+  const cartCourses = courses.map(({ id, name, image, price }) => {
+    // find quantity of course from cart
+    const { quantity } = session.data.cart.find(
+      ({ courseId }) => courseId === id,
+    );
+    // return course object with required fields
+    return {
+      id,
+      name,
+      image,
+      price,
+      quantity,
+    };
+  });
+
+  res.json(cartCourses);
 });
 
 // Add to cart

@@ -1,11 +1,11 @@
 import axiosInstance from "./axiosInstance";
 
-export const addToCartApi = async (courseId) => {
-  const { data } = await axiosInstance.post("/cart", { courseId });
+export const getCartApi = async () => {
+  const { data } = await axiosInstance.get("/cart");
   return data;
 };
 
-export const getAllCartItemsApi = async () => {
-  const { data } = await axiosInstance.get("/getAllCartItems");
+export const addToCartApi = async (courseId) => {
+  const { data } = await axiosInstance.post("/cart", { courseId });
   return data;
 };

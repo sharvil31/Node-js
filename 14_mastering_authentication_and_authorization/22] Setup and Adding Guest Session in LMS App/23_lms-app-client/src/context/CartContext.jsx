@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { addToCartApi, getAllCartItemsApi } from "../api/cartApi";
+import { getCartApi } from "../api/cartApi";
 
 const CartContext = createContext(undefined);
 
@@ -8,7 +8,8 @@ export function CartProvider({ children }) {
 
   const fetchAllCartItems = async () => {
     try {
-      const res = await getAllCartItemsApi();
+      const res = await getCartApi();
+      console.log(res);
       setCart(res);
     } catch (error) {
       console.log(error);
@@ -19,21 +20,21 @@ export function CartProvider({ children }) {
     fetchAllCartItems();
   }, []);
 
-  const addToCart = async (course) => {
-    setCart((prevCart) => {
-      const existingCourse = prevCart.find((item) => item.name === course.name);
+  // const addToCart = async (course) => {
+  //   setCart((prevCart) => {
+  //     const existingCourse = prevCart.find((item) => item.name === course.name);
 
-      if (existingCourse) {
-        return prevCart.map((item) =>
-          item.name === course.name
-            ? { ...item, quantity: (item.quantity || 1) + 1 }
-            : item,
-        );
-      }
+  //     if (existingCourse) {
+  //       return prevCart.map((item) =>
+  //         item.name === course.name
+  //           ? { ...item, quantity: (item.quantity || 1) + 1 }
+  //           : item,
+  //       );
+  //     }
 
-      return [...prevCart, { ...course, quantity: 1 }];
-    });
-  };
+  //     return [...prevCart, { ...course, quantity: 1 }];
+  //   });
+  // };
 
   const removeFromCart = (course) => {
     setCart((prevCart) => prevCart.filter((item) => item.name !== course.name));
@@ -46,7 +47,7 @@ export function CartProvider({ children }) {
 
   return (
     <CartContext.Provider
-      value={{ cart, addToCart, removeFromCart, cartCount }}
+      value={{ cart, fetchAllCartItems, removeFromCart, cartCount }}
     >
       {children}
     </CartContext.Provider>
