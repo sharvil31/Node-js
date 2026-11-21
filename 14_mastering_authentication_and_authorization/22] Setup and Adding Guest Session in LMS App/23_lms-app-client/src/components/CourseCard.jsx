@@ -8,9 +8,8 @@ export default function CourseCard({ _id, name, price, image }) {
   const handleAddToCart = async () => {
     // addToCart({ name, price, image });
     try {
-      const data = await addToCartApi(_id);
+      await addToCartApi(_id);
       fetchAllCartItems();
-      console.log(data);
     } catch (error) {
       console.log(error);
     }

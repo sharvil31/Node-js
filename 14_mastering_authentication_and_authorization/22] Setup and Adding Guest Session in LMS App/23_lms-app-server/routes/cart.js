@@ -66,7 +66,16 @@ router.post("/", async (req, res) => {
 
 // Remove course from cart
 router.delete("/:courseId", async (req, res) => {
-  //Add your code here
+  const sessionId = req.signedCookies.sid;
+  const courseId = req.params.courseId;
+
+  const result = await Session.updateOne(
+    { _id: sessionId },
+    { $pull: { "data.cart": { courseId } } },
+  );
+
+  console.log(result);
+  res.json({message: "Cart item deleted successfully"})
 });
 
 // Clear cart
