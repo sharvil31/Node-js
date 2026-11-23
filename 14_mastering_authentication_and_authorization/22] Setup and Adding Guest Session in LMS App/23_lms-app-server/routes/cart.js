@@ -9,6 +9,10 @@ router.get("/", async (req, res) => {
   const sessionId = req.signedCookies.sid;
   // find guest user session
   const session = await Session.findById(sessionId);
+  
+  if (!session) {
+    return res.status(404).json({ error: "User not logged in" });
+  }
   // get added courses Ids
   const courseIds = session.data.cart.map(({ courseId }) => courseId);
   // find courses in courses collection
@@ -37,8 +41,7 @@ router.get("/", async (req, res) => {
 router.post("/", async (req, res) => {
   const sessionId = req.signedCookies.sid;
   const courseId = req.body.courseId;
-  console.log(req.signedCookies.sid);
-  console.log(req.body.courseId);
+
   const result = await Session.updateOne(
     {
       _id: sessionId,
@@ -75,7 +78,7 @@ router.delete("/:courseId", async (req, res) => {
   );
 
   console.log(result);
-  res.json({message: "Cart item deleted successfully"})
+  res.json({ message: "Cart item deleted successfully" });
 });
 
 // Clear cart

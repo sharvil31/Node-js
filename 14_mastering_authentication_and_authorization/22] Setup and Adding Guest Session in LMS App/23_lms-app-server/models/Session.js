@@ -1,10 +1,14 @@
 import mongoose from "mongoose";
 
 const sessionSchema = new mongoose.Schema({
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    default: null,
+  },
   data: {
     type: mongoose.Schema.Types.Mixed,
     default: {
-      cart: []
+      cart: [],
     },
   },
   expires: {

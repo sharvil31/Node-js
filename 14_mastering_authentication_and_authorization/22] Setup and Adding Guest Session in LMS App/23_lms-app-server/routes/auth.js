@@ -1,6 +1,7 @@
 import express from "express";
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
+import Session from "../models/Session.js";
 
 const router = express.Router();
 
@@ -24,16 +25,8 @@ router.post("/register", async (req, res) => {
 
     await user.save();
 
-    // Generate JWT token
-    const token = jwt.sign(
-      { userId: user._id },
-      process.env.JWT_SECRET || "your-secret-key",
-      { expiresIn: "24h" }
-    );
-
     res.status(201).json({
       message: "User registered successfully",
-      token,
       user: {
         id: user._id,
         email: user.email,
@@ -62,21 +55,79 @@ router.post("/login", async (req, res) => {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    // Generate JWT token
-    const token = jwt.sign(
-      { userId: user._id },
-      process.env.JWT_SECRET || "your-secret-key",
-      { expiresIn: "24h" }
-    );
+    const sessionId = req.signedCookies.sid;
+    // find guest user session
+    const session = await Session.findById(sessionId);
 
-    res.json({
+    // if session doesn't exist create a new one
+    if (session) {
+      session.expires = Math.round(Date.now() / 1000) + 60 * 60 * 24 * 30;
+      session.userId = user._id;
+
+      await session.save();
+
+      res.cookie("sid", session.id, {
+        httpOnly: true,
+        signed: true,
+        maxAge: 1000 * 60 * 60 * 24 * 30,
+      });
+
+      // const result = await Session.updateOne(
+      //   { _id: sessionId },
+      //   {
+      //     $set: {
+      //       userId: user._id,
+      //     },
+      //   },
+      // );
+
+      // console.log(result);
+
+      return res.json({
+        message: "Login successful",
+        user: {
+          id: user._id,
+          email: user.email,
+          name: user.name,
+        },
+      });
+    }
+
+    // if session doesn't exist create a new one
+    const newSession = await Session.create({ userId: user._id });
+    res.cookie("sid", newSession.id, {
+      httpOnly: true,
+      signed: true,
+      maxAge: 1000 * 60 * 60 * 24 * 30,
+    });
+
+    return res.json({
       message: "Login successful",
-      token,
       user: {
         id: user._id,
         email: user.email,
         name: user.name,
       },
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+router.get("/profile", async (req, res) => {
+  try {
+    const sessionId = req.signedCookies.sid;
+    const session = await Session.findById(sessionId);
+
+    if (!session || !session.userId) {
+      return res.status(404).json({ error: "User not logged in" });
+    }
+
+    const user = await User.findById(session.userId).lean();
+
+    res.json({
+      email: user.email,
+      name: user.name,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });

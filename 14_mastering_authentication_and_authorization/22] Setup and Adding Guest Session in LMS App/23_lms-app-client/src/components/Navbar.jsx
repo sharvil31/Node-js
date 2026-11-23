@@ -13,7 +13,7 @@ import { useAuth } from "../context/AuthContext";
 
 export default function Navbar({ darkMode, toggleDarkMode }) {
   const { cartCount } = useCart();
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
 
   return (
     <nav className="sticky top-0 left-0 right-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg shadow-lg mb-4">
@@ -80,7 +80,7 @@ export default function Navbar({ darkMode, toggleDarkMode }) {
                         </div>
                         <MenuItem>
                           <button
-                            onClick={logout}
+                            // onClick={logout}
                             className={`group flex w-full items-center gap-2 rounded-lg py-1.5 px-3 data-[focus]:dark:bg-white/10 data-[focus]:bg-gray-200 dark:text-gray-200`}
                           >
                             Sign out
