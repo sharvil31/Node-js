@@ -8,23 +8,17 @@ const router = express.Router();
 router.get("/", async (req, res) => {
   const sessionId = req.signedCookies.sid;
   // find guest user session
-  const session = await Session.findById(sessionId);
-  
+  const session =
+    await Session.findById(sessionId).populate("data.cart.courseId");
+
+  // console.log(session.data.cart);
+
   if (!session) {
     return res.status(404).json({ error: "User not logged in" });
   }
   // get added courses Ids
-  const courseIds = session.data.cart.map(({ courseId }) => courseId);
-  // find courses in courses collection
-  const courses = await Course.find({ _id: { $in: courseIds } });
-
-  // create response with required fields for frontend
-  const cartCourses = courses.map(({ id, name, image, price }) => {
-    // find quantity of course from cart
-    const { quantity } = session.data.cart.find(
-      ({ courseId }) => courseId === id,
-    );
-    // return course object with required fields
+  const cartCourses = session.data.cart.map(({ courseId, quantity }) => {
+    const { id, name, image, price } = courseId;
     return {
       id,
       name,
@@ -34,6 +28,7 @@ router.get("/", async (req, res) => {
     };
   });
 
+  // return course object with required fields
   res.json(cartCourses);
 });
 
