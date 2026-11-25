@@ -1,28 +1,26 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
+import { getUserProfileApi } from "../api/authApi";
 
 const AuthContext = createContext(undefined);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState();
 
-  const login = (email, password) => {
-    // In a real app, this would make an API call
-    const userData = { email, name: email.split("@")[0] };
-    setUser(userData);
+  const fetchUser = async () => {
+    try {
+      const data = await getUserProfileApi();
+      setUser(data);
+    } catch (error) {
+      console.log(error);
+    }
   };
 
-  const register = (email, password) => {
-    // In a real app, this would make an API call
-    const userData = { email, name: email.split("@")[0] };
-    setUser(userData);
-  };
-
-  const logout = () => {
-    setUser(null);
-  };
+  useEffect(() => {
+    fetchUser();
+  }, []);
 
   return (
-    <AuthContext.Provider value={{ user, setUser, login, register, logout }}>
+    <AuthContext.Provider value={{ user, setUser, fetchUser }}>
       {children}
     </AuthContext.Provider>
   );

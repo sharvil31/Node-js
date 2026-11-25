@@ -165,12 +165,25 @@ router.post("/login", async (req, res) => {
   }
 });
 
+router.post("/logout", async (req, res) => {
+  const sessionId = req.signedCookies.sid;
+  // find user session
+  await Session.findByIdAndDelete(sessionId);
+
+  res.json({ message: "Logout Successful" });
+});
+
 router.get("/profile", async (req, res) => {
   try {
     const sessionId = req.signedCookies.sid;
     const session = await Session.findById(sessionId);
 
     if (!session || !session.userId) {
+      return res.status(404).json({ error: "User not logged in" });
+    }
+
+    if (session.expires < Math.round(Date.now() / 1000)) {
+      await session.deleteOne();
       return res.status(404).json({ error: "User not logged in" });
     }
 
