@@ -71,35 +71,48 @@ router.post("/login", async (req, res) => {
       const cart = await Cart.findOne({ userId: user._id });
 
       // if cart present then add session cart items to cart from user's new guest session.
+      const guestCourses = session.data.cart || [];
       if (cart) {
-        cart.courses = cart.courses.map(({ courseId, quantity }) => {
-          const foundSessionCourse = session.data.cart.find(
-            (course) => courseId.equals(course.courseId),
-          );
+        for (const guestCourse of guestCourses) {
+          const existingCourse = cart.courses.find(
+            (course) =>
+              course.courseId.toString() === guestCourse.courseId.toString(),
+          ); // .find return the actual object reference, not a copy
 
-          if (foundSessionCourse) {
-            return {
-              courseId,
-              quantity: quantity + foundSessionCourse.quantity,
-            };
+          if (existingCourse) {
+            existingCourse.quantity += guestCourse.quantity; // changed existingCourse quantity will also change cart course quantity cause existingCourse references the cart course object. both are pointing to same object in memory.
+          } else {
+            cart.courses.push(guestCourse);
           }
+        }
 
-          return { courseId, quantity };
-        });
-        //     const result = await Cart.updateOne(
-        //   {
-        //     userId: session.userId,
-        //     "courses.courseId": courseId,
-        //   },
-        //   { $inc: { "courses.$.quantity": 1 } },
-        // );
+        // another solution using new Map()
 
-        // if (result.matchedCount === 0) {
-        //   await Cart.updateOne(
-        //     { userId: session.userId },
-        //     { $push: { courses: { courseId, quantity: 1 } } },
-        //   );
+        // const coursesMap = new Map();
+
+        // // add existing user cart courses to map
+        // for (const course of cart.courses) {
+        //   coursesMap.set(course.courseId.toString(), {
+        //     courseId: course.courseId,
+        //     quantity: course.quantity,
+        //   });
         // }
+        // // Merge guest cart courses
+        // for (const course of guestCourses) {
+        //   const courseId = course.courseId.toString();
+
+        //   if (coursesMap.has(courseId)) {
+        //     coursesMap.get(courseId).quantity += course.quantity;
+        //   } else {
+        //     coursesMap.set(courseId, {
+        //       courseId: course.courseId,
+        //       quantity: course.quantity,
+        //     });
+        //   }
+        // }
+        // // Convert Map values back to an array
+        // cart.courses = Array.from(coursesMap.values());
+
         await cart.save();
       } else {
         // if cart not present then create a new cart in cart collection and move all cart item to cart collection from session.
@@ -111,7 +124,7 @@ router.post("/login", async (req, res) => {
         console.log(result);
       }
 
-      // after moving empty data.cart from session
+      // after moving clear data.cart from session
       session.data = {};
       await session.save();
 
