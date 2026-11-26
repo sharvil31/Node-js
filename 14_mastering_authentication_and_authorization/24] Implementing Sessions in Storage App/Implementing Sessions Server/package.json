@@ -1,0 +1,20 @@
+{
+  "name": "Implementing-Sessions-in-Storage-App-Server",
+  "version": "1.0.0",
+  "main": "app.js",
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch app.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
+    "express": "^4.21.2",
+    "mime-types": "^2.1.35",
+    "mongoose": "^9.11.4"
+  }
+}
